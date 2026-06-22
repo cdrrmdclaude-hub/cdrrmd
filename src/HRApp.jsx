@@ -1824,7 +1824,7 @@ function AddAccountModal({onClose,onCreate,existingEmails}){
   );
 }
 
-function EditAccountModal({account,onClose,onSave,onResetPassword,onDelete,existingEmails}){
+function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onClose,onSave,onResetPassword,onDelete,existingEmails}){
   const [name,setName]=useState(account.name); const [dept,setDept]=useState(account.department);
   const [pos,setPos]=useState(account.position); const [email,setEmail]=useState(account.email);
   const [err,setErr]=useState("");
