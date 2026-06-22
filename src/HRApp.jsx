@@ -832,7 +832,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
     // ── Sheet 1: Balance Summary ──
     const summaryData = scopedEmps.map(emp=>{
       const bal = balances[emp.id] || {creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:{}};
-      return {
+      const row = {
         "Employee Name": emp.name,
         "Department": emp.department,
         "Position": emp.position,
@@ -841,27 +841,27 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
         "Duty on Day-Off Credits (h)": bal.creditsDutyOff||0,
         "Total OT/Duty Credits (h)": creditsTotal(bal),
         "Offset Used (h)": bal.offsetUsed||0,
-        "Leave Balance (h)": bal.leave||0,
       };
+      (leaveTypes||[]).forEach(lt=>{ row[`${lt.name} (days)`] = leaveRemaining(bal,lt.id); });
+      return row;
     });
     // Company-wide totals row
     const sumOf = (key)=>summaryData.reduce((s,row)=>s+(row[key]||0),0);
-    summaryData.push({
+    const totalRow = {
       "Employee Name": "TOTAL (All Employees)",
-      "Department": "",
-      "Position": "",
-      "Email": "",
+      "Department": "", "Position": "", "Email": "",
       "Overtime Credits (h)": sumOf("Overtime Credits (h)"),
       "Duty on Day-Off Credits (h)": sumOf("Duty on Day-Off Credits (h)"),
       "Total OT/Duty Credits (h)": sumOf("Total OT/Duty Credits (h)"),
       "Offset Used (h)": sumOf("Offset Used (h)"),
-      "Leave Balance (h)": sumOf("Leave Balance (h)"),
-    });
+    };
+    (leaveTypes||[]).forEach(lt=>{ totalRow[`${lt.name} (days)`] = sumOf(`${lt.name} (days)`); });
+    summaryData.push(totalRow);
     const summarySheet = XLSX.utils.json_to_sheet(summaryData);
-    summarySheet["!cols"] = [{wch:22},{wch:20},{wch:18},{wch:26},{wch:18},{wch:22},{wch:20},{wch:16},{wch:16}];
 
     // ── Sheet 2: Request Log (detail rows, matches filters) ──
     const empMap = Object.fromEntries(employees.map(e=>[e.id,e]));
+    const leaveTypeMap = Object.fromEntries((leaveTypes||[]).map(l=>[l.id,l.name]));
     const logData = rows.map(r=>{
       const emp = empMap[r.employeeId];
       return {
@@ -869,7 +869,11 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
         "Department": emp?.department || "",
         "Type": REQUEST_TYPES[r.type]?.label || r.type,
         "Date": r.date,
-        "Hours": r.hours,
+        "Start Time": r.startTime || "",
+        "End Time":   r.endTime   || "",
+        "Hours":      r.type==="leave" ? "" : (r.hours||0),
+        "Leave Type": r.type==="leave" ? (leaveTypeMap[r.leaveTypeId]||"") : "",
+        "Days":       r.type==="leave" ? (r.days||0) : "",
         "Status": STATUS_STYLE[r.status]?.label || r.status,
         "Reason": r.reason,
         "Filed On": r.submittedAt,
@@ -878,7 +882,6 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       };
     });
     const logSheet = XLSX.utils.json_to_sheet(logData);
-    logSheet["!cols"] = [{wch:20},{wch:18},{wch:16},{wch:12},{wch:8},{wch:10},{wch:30},{wch:12},{wch:12},{wch:28}];
 
     // ── Sheet 3: Approved Totals by Type (pivot-style) ──
     const totalsByEmp = {};
