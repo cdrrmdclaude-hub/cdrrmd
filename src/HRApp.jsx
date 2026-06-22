@@ -1890,6 +1890,39 @@ function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onCl
 
           <div style={{borderTop:"1px solid #E2E5EA"}}/>
 
+          {/* Leave Allowances (employees only) */}
+          {account.role==="employee" && leaveTypes && leaveTypes.length>0 && (
+            <>
+              <div>
+                <SectionLabel>Leave Allowances (days remaining)</SectionLabel>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {leaveTypes.map(lt=>{
+                    const current = balance?.leaveBalances?.[lt.id] ?? 0;
+                    return(
+                      <div key={lt.id} style={{display:"flex",alignItems:"center",gap:10,
+                        background:"#FDF3E7",borderRadius:9,padding:"8px 12px"}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <p style={{margin:0,fontSize:13,fontWeight:700,color:"#B07026"}}>{lt.name}</p>
+                          <p style={{margin:"2px 0 0",fontSize:11,color:"#aaa"}}>Default: {fmtDays(lt.defaultDays)}</p>
+                        </div>
+                        <input type="number" min="0" step="0.5" defaultValue={current}
+                          onBlur={e=>{
+                            const v=Math.max(0,parseFloat(e.target.value)||0);
+                            if(v!==current) onUpdateEmployeeLeave(account.id, lt.id, v);
+                          }}
+                          style={{width:80,border:"1px solid #E8C690",borderRadius:7,
+                            padding:"5px 9px",fontSize:13,fontFamily:"inherit",background:"#fff",color:"#1a1a1a"}}/>
+                        <span style={{fontSize:12,color:"#B07026",fontWeight:600}}>days</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div style={{borderTop:"1px solid #E2E5EA"}}/>
+            </>
+          )}
+
+
           {/* Reset password */}
           <div>
             <SectionLabel>Reset Password</SectionLabel>
