@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+// @ts-expect-error - JS module without type declarations
 import HRApp from "../HRApp.jsx";
 
 export const Route = createFileRoute("/")({
