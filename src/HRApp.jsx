@@ -29,23 +29,31 @@ const SEED_EMPLOYEES = [
   { id:"E003", name:"Ana Cruz",     department:"Rescue and Response",  position:"Coordinator",      email:"a.cruz@company.com",   password:"pass123", role:"employee", avatar:"AC" },
   { id:"A001", name:"Admin User",   department:"Admin",                position:"HR Manager",       email:"admin@cdrrmd.com",     password:"admin123",role:"admin",   avatar:"AU" },
 ];
+// Leave types: admin can add/remove. defaultDays applies to NEW employees;
+// existing employees keep whatever is in their balances.leaveBalances map.
+const SEED_LEAVE_TYPES = [
+  { id:"LT_SICK",      name:"Sick Leave",      defaultDays:5 },
+  { id:"LT_VACATION",  name:"Vacation Leave",  defaultDays:10 },
+  { id:"LT_EMERGENCY", name:"Emergency Leave", defaultDays:3 },
+];
 const SEED_BALANCES = {
-  E001:{ creditsOvertime:16.5, creditsDutyOff:16, leave:80, offsetUsed:8.0  }, // 24.5 OT - 8 offset = 16.5; 16 dutyDayOff
-  E002:{ creditsOvertime:8.0,  creditsDutyOff:8,  leave:96, offsetUsed:4.0  }, // 12 OT - 4 offset = 8; 8 dutyDayOff
-  E003:{ creditsOvertime:20.0, creditsDutyOff:24, leave:64, offsetUsed:16.0 }, // 36 OT - 16 offset = 20; 24 dutyDayOff
+  E001:{ creditsOvertime:16.5, creditsDutyOff:16, offsetUsed:8.0,  leaveBalances:{ LT_SICK:5, LT_VACATION:8,  LT_EMERGENCY:3 } },
+  E002:{ creditsOvertime:8.0,  creditsDutyOff:8,  offsetUsed:4.0,  leaveBalances:{ LT_SICK:4, LT_VACATION:10, LT_EMERGENCY:3 } },
+  E003:{ creditsOvertime:20.0, creditsDutyOff:24, offsetUsed:16.0, leaveBalances:{ LT_SICK:3, LT_VACATION:6,  LT_EMERGENCY:2 } },
 };
 const SEED_REQUESTS = [
-  { id:"R001", employeeId:"E001", employeeName:"Maria Santos", type:"overtime",   date:"2025-06-10", hours:3.0, reason:"System migration support",       status:"approved", submittedAt:"2025-06-11", reviewedAt:"2025-06-12", reviewNote:"Approved — logged correctly." },
-  { id:"R002", employeeId:"E002", employeeName:"Juan Reyes",   type:"leave",      date:"2025-06-15", hours:8.0, reason:"Family medical appointment",      status:"approved", submittedAt:"2025-06-12", reviewedAt:"2025-06-13", reviewNote:"" },
-  { id:"R003", employeeId:"E001", employeeName:"Maria Santos", type:"offset",     date:"2025-06-18", hours:4.0, reason:"Using OT credits from last week", status:"pending",  submittedAt:"2025-06-14", reviewedAt:null,         reviewNote:"" },
-  { id:"R004", employeeId:"E003", employeeName:"Ana Cruz",     type:"dutyDayOff", date:"2025-06-22", hours:8.0, reason:"Weekend system audit coverage",   status:"pending",  submittedAt:"2025-06-15", reviewedAt:null,         reviewNote:"" },
-  { id:"R005", employeeId:"E002", employeeName:"Juan Reyes",   type:"overtime",   date:"2025-06-20", hours:2.5, reason:"Quarter-end report preparation",  status:"pending",  submittedAt:"2025-06-16", reviewedAt:null,         reviewNote:"" },
-  { id:"R006", employeeId:"E001", employeeName:"Maria Santos", type:"leave",      date:"2025-06-25", hours:8.0, reason:"Vacation",                        status:"rejected", submittedAt:"2025-06-10", reviewedAt:"2025-06-11", reviewNote:"Conflict with project deadline." },
-  { id:"R007", employeeId:"E003", employeeName:"Ana Cruz",     type:"overtime",   date:"2025-06-05", hours:6.0, reason:"Payroll system cutover",          status:"approved", submittedAt:"2025-06-06", reviewedAt:"2025-06-07", reviewNote:"" },
-  { id:"R008", employeeId:"E002", employeeName:"Juan Reyes",   type:"offset",     date:"2025-06-08", hours:4.0, reason:"Using banked OT",                 status:"approved", submittedAt:"2025-06-07", reviewedAt:"2025-06-08", reviewNote:"" },
-  { id:"R009", employeeId:"E003", employeeName:"Ana Cruz",     type:"leave",      date:"2025-05-28", hours:8.0, reason:"Sick leave",                      status:"approved", submittedAt:"2025-05-27", reviewedAt:"2025-05-28", reviewNote:"" },
-  { id:"R010", employeeId:"E001", employeeName:"Maria Santos", type:"dutyDayOff", date:"2025-05-18", hours:8.0, reason:"Weekend data center work",        status:"approved", submittedAt:"2025-05-19", reviewedAt:"2025-05-20", reviewNote:"Verified with IT." },
+  { id:"R001", employeeId:"E001", employeeName:"Maria Santos", type:"overtime",   date:"2025-06-10", startTime:"18:00", endTime:"21:00", hours:3.0, reason:"System migration support",       status:"approved", submittedAt:"2025-06-11", reviewedAt:"2025-06-12", reviewNote:"Approved — logged correctly." },
+  { id:"R002", employeeId:"E002", employeeName:"Juan Reyes",   type:"leave",      date:"2025-06-15", leaveTypeId:"LT_SICK",      days:1,   hours:8.0, reason:"Family medical appointment",      status:"approved", submittedAt:"2025-06-12", reviewedAt:"2025-06-13", reviewNote:"" },
+  { id:"R003", employeeId:"E001", employeeName:"Maria Santos", type:"offset",     date:"2025-06-18", startTime:"13:00", endTime:"17:00", hours:4.0, reason:"Using OT credits from last week", status:"pending",  submittedAt:"2025-06-14", reviewedAt:null,         reviewNote:"" },
+  { id:"R004", employeeId:"E003", employeeName:"Ana Cruz",     type:"dutyDayOff", date:"2025-06-22", startTime:"08:00", endTime:"16:00", hours:8.0, reason:"Weekend system audit coverage",   status:"pending",  submittedAt:"2025-06-15", reviewedAt:null,         reviewNote:"" },
+  { id:"R005", employeeId:"E002", employeeName:"Juan Reyes",   type:"overtime",   date:"2025-06-20", startTime:"17:30", endTime:"20:00", hours:2.5, reason:"Quarter-end report preparation",  status:"pending",  submittedAt:"2025-06-16", reviewedAt:null,         reviewNote:"" },
+  { id:"R006", employeeId:"E001", employeeName:"Maria Santos", type:"leave",      date:"2025-06-25", leaveTypeId:"LT_VACATION",  days:2,   hours:16.0,reason:"Vacation",                        status:"rejected", submittedAt:"2025-06-10", reviewedAt:"2025-06-11", reviewNote:"Conflict with project deadline." },
+  { id:"R007", employeeId:"E003", employeeName:"Ana Cruz",     type:"overtime",   date:"2025-06-05", startTime:"08:00", endTime:"14:00", hours:6.0, reason:"Payroll system cutover",          status:"approved", submittedAt:"2025-06-06", reviewedAt:"2025-06-07", reviewNote:"" },
+  { id:"R008", employeeId:"E002", employeeName:"Juan Reyes",   type:"offset",     date:"2025-06-08", startTime:"13:00", endTime:"17:00", hours:4.0, reason:"Using banked OT",                 status:"approved", submittedAt:"2025-06-07", reviewedAt:"2025-06-08", reviewNote:"" },
+  { id:"R009", employeeId:"E003", employeeName:"Ana Cruz",     type:"leave",      date:"2025-05-28", leaveTypeId:"LT_SICK",      days:1,   hours:8.0, reason:"Sick leave",                      status:"approved", submittedAt:"2025-05-27", reviewedAt:"2025-05-28", reviewNote:"" },
+  { id:"R010", employeeId:"E001", employeeName:"Maria Santos", type:"dutyDayOff", date:"2025-05-18", startTime:"08:00", endTime:"16:00", hours:8.0, reason:"Weekend data center work",        status:"approved", submittedAt:"2025-05-19", reviewedAt:"2025-05-20", reviewNote:"Verified with IT." },
 ];
+
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const REQUEST_TYPES = {
@@ -67,12 +75,26 @@ const TYPE_KEYS = ["overtime","offset","leave","dutyDayOff"];
 const BALANCE_TYPES = {
   credits:    { label:"OT/Duty on Day-Off Credits", color:"#1E3A6E", bg:"#E8EDF6", icon:"⏱" },
   offsetUsed: { label:"Offset Used",        color:"#1DB584", bg:"#E6F9F3", icon:"⇄"  },
-  leave:      { label:"Leave",              color:"#E8913A", bg:"#FDF3E7", icon:"🗓" },
 };
-const BALANCE_KEYS = ["credits","offsetUsed","leave"];
+const BALANCE_KEYS = ["credits","offsetUsed"];
 // Helper: merged credits total from the two separately-tracked pools
 function creditsTotal(bal){ return (bal?.creditsOvertime||0) + (bal?.creditsDutyOff||0); }
+// Leave balance helpers
+function leaveRemaining(bal, leaveTypeId){ return Math.max(0, bal?.leaveBalances?.[leaveTypeId] ?? 0); }
+function totalLeaveRemaining(bal){
+  const m = bal?.leaveBalances || {};
+  return Object.values(m).reduce((s,v)=>s+(v||0),0);
+}
 const DEPARTMENTS = [
+  "Admin",
+  "Operations",
+  "DRRM Operations",
+  "Rescue and Response",
+  "Logistics",
+  "Training",
+  "Rescue",
+  "IT",
+];
   "Admin",
   "Operations",
   "DRRM Operations",
@@ -87,6 +109,23 @@ const DEPARTMENTS = [
 function genId(p){ return `${p}${Date.now()}${Math.floor(Math.random()*100)}`; }
 function today(){ return new Date().toISOString().split("T")[0]; }
 function fmt(h){ return `${h%1===0?h.toFixed(0):h.toFixed(1)}h`; }
+function fmtDays(d){ const n=+d||0; return `${n%1===0?n.toFixed(0):n.toFixed(1)} day${n===1?"":"s"}`; }
+function hoursBetween(start, end){
+  if(!start||!end) return 0;
+  const [sh,sm]=start.split(":").map(Number);
+  const [eh,em]=end.split(":").map(Number);
+  let mins=(eh*60+em)-(sh*60+sm);
+  if(mins<0) mins+=24*60; // cross-midnight
+  return Math.round((mins/60)*10)/10;
+}
+function reqDurationText(r, leaveTypes){
+  if(r.type==="leave"){
+    const lt = leaveTypes?.find(l=>l.id===r.leaveTypeId);
+    return `${lt?lt.name:"Leave"} · ${fmtDays(r.days||0)}`;
+  }
+  if(r.startTime && r.endTime) return `${r.startTime}–${r.endTime} (${fmt(r.hours||0)})`;
+  return fmt(r.hours||0);
+}
 function fmtDate(d){
   if(!d) return "—";
   const [y,m,day]=d.split("-");
@@ -273,7 +312,7 @@ function LoginScreen({onLogin, accounts, onRegister}){
 // ─── EMPLOYEE DASHBOARD ───────────────────────────────────────────────────────
 function BalCard({type,hours,breakdown}){
   const t=BALANCE_TYPES[type];
-  const pct=type==="leave"?Math.min(hours/120*100,100):Math.min(hours/64*100,100);
+  const pct=Math.min(hours/64*100,100);
   return(
     <div style={{background:"#fff",borderRadius:14,padding:"18px 20px",
       boxShadow:"0 1px 4px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.04)"}}>
@@ -292,9 +331,28 @@ function BalCard({type,hours,breakdown}){
     </div>
   );
 }
-function EmployeeDashboard({user,requests,balances,onNewRequest}){
+function LeaveBalCard({name,remaining,defaultDays}){
+  const pct = defaultDays>0 ? Math.min((remaining/defaultDays)*100,100) : 0;
+  return(
+    <div style={{background:"#fff",borderRadius:14,padding:"16px 18px",
+      boxShadow:"0 1px 4px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.04)"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+        <div style={{minWidth:0}}>
+          <p style={{margin:0,fontSize:12,fontWeight:700,color:"#999",textTransform:"uppercase",letterSpacing:"0.07em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{name}</p>
+          <p style={{margin:"4px 0 0",fontSize:24,fontWeight:800,color:"#E8913A",letterSpacing:"-0.03em"}}>{fmtDays(remaining)}</p>
+          <p style={{margin:"2px 0 0",fontSize:12,color:"#aaa"}}>of {fmtDays(defaultDays)} allowance</p>
+        </div>
+        <span style={{fontSize:24,lineHeight:1}}>🗓</span>
+      </div>
+      <div style={{marginTop:12,height:5,background:"#FDF3E7",borderRadius:10}}>
+        <div style={{height:"100%",width:`${pct}%`,background:"#E8913A",borderRadius:10,transition:"width 0.6s"}}/>
+      </div>
+    </div>
+  );
+}
+function EmployeeDashboard({user,requests,balances,leaveTypes,onNewRequest}){
   const mine=requests.filter(r=>r.employeeId===user.id).slice().reverse();
-  const bal=balances[user.id]||{creditsOvertime:0,creditsDutyOff:0,leave:0,offsetUsed:0};
+  const bal=balances[user.id]||{creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:{}};
   const pending=mine.filter(r=>r.status==="pending").length;
   return(
     <div style={{display:"flex",flexDirection:"column",gap:24}}>
@@ -312,6 +370,19 @@ function EmployeeDashboard({user,requests,balances,onNewRequest}){
           ))}
         </div>
       </div>
+      <div>
+        <SectionLabel>Your Leave Balances</SectionLabel>
+        {leaveTypes.length===0?(
+          <Card><p style={{margin:0,color:"#aaa",fontSize:14}}>No leave types configured. Ask your administrator to add some.</p></Card>
+        ):(
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:14}}>
+            {leaveTypes.map(lt=>(
+              <LeaveBalCard key={lt.id} name={lt.name}
+                remaining={leaveRemaining(bal,lt.id)} defaultDays={lt.defaultDays}/>
+            ))}
+          </div>
+        )}
+      </div>
       <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
         <Btn onClick={onNewRequest}>+ File a Request</Btn>
         {pending>0&&<span style={{display:"flex",alignItems:"center",background:"#FEF9EC",color:"#B07D2A",
@@ -326,7 +397,7 @@ function EmployeeDashboard({user,requests,balances,onNewRequest}){
                 <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:10}}>
                   <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
                     <TypeChip type={r.type}/><span style={{fontSize:13,color:"#555"}}>{r.date}</span>
-                    <span style={{fontSize:13,fontWeight:700,color:"#333"}}>{fmt(r.hours)}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:"#333"}}>{reqDurationText(r,leaveTypes)}</span>
                   </div>
                   <Badge status={r.status}/>
                 </div>
@@ -342,18 +413,43 @@ function EmployeeDashboard({user,requests,balances,onNewRequest}){
 }
 
 // ─── NEW REQUEST ──────────────────────────────────────────────────────────────
-function NewRequestForm({user,balances,onSubmit,onCancel}){
-  const [type,setType]=useState("overtime"); const [date,setDate]=useState(today());
-  const [hours,setHours]=useState(""); const [reason,setReason]=useState(""); const [err,setErr]=useState("");
+function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
+  const [type,setType]=useState("overtime");
+  const [date,setDate]=useState(today());
+  const [startTime,setStartTime]=useState("");
+  const [endTime,setEndTime]=useState("");
+  const [leaveTypeId,setLeaveTypeId]=useState(leaveTypes[0]?.id || "");
+  const [days,setDays]=useState("1");
+  const [reason,setReason]=useState("");
+  const [err,setErr]=useState("");
   const bal=balances[user.id]||{};
-  const maxH={overtime:999,offset:creditsTotal(bal),leave:bal.leave||0,dutyDayOff:999};
+  const computedHours = hoursBetween(startTime, endTime);
+  const maxOffsetH = creditsTotal(bal);
+  const remainingForLeave = leaveTypeId ? leaveRemaining(bal, leaveTypeId) : 0;
+
   function go(){
     if(!date){setErr("Select a date.");return;}
-    const h=parseFloat(hours); if(!h||h<=0){setErr("Enter valid hours.");return;}
-    if(type!=="overtime"&&type!=="dutyDayOff"&&h>maxH[type]){setErr(`Only ${fmt(maxH[type])} available.`);return;}
     if(!reason.trim()){setErr("Provide a reason.");return;}
-    setErr(""); onSubmit({type,date,hours:h,reason:reason.trim()});
+    if(type==="leave"){
+      if(!leaveTypeId){setErr("Select a leave type.");return;}
+      const d=parseFloat(days);
+      if(!d||d<0.5){setErr("Days must be at least 0.5.");return;}
+      if(d>5){setErr("Days cannot exceed 5 per request.");return;}
+      if((d*10)%5!==0){setErr("Days must be in 0.5 increments.");return;}
+      if(d>remainingForLeave){setErr(`Only ${fmtDays(remainingForLeave)} remaining for this leave type.`);return;}
+      setErr("");
+      onSubmit({type,date,leaveTypeId,days:d,hours:d*8,reason:reason.trim()});
+      return;
+    }
+    if(!startTime||!endTime){setErr("Enter both start and end time.");return;}
+    if(computedHours<=0){setErr("End time must be after start time.");return;}
+    if(type==="offset" && computedHours>maxOffsetH){
+      setErr(`Only ${fmt(maxOffsetH)} of OT/Duty credits available.`);return;
+    }
+    setErr("");
+    onSubmit({type,date,startTime,endTime,hours:computedHours,reason:reason.trim()});
   }
+
   return(
     <div style={{display:"flex",flexDirection:"column",gap:24}}>
       <div>
@@ -365,14 +461,48 @@ function NewRequestForm({user,balances,onSubmit,onCancel}){
           <Sel label="Request Type" value={type} onChange={e=>setType(e.target.value)}>
             {Object.entries(REQUEST_TYPES).map(([k,v])=><option key={k} value={k}>{v.icon} {v.label}</option>)}
           </Sel>
-          {(type==="offset"||type==="leave")&&(
-            <div style={{background:REQUEST_TYPES[type].bg,borderRadius:9,padding:"10px 14px",fontSize:13,
-              color:REQUEST_TYPES[type].color,fontWeight:600}}>
-              Available: {fmt(maxH[type])}{type==="offset"?" (from OT/Duty on Day-Off Credits)":""}
-            </div>
-          )}
+
           <Inp label="Date" type="date" value={date} onChange={e=>setDate(e.target.value)}/>
-          <Inp label="Hours" type="number" min="0.5" step="0.5" value={hours} onChange={e=>setHours(e.target.value)} placeholder="e.g. 4"/>
+
+          {type==="leave" ? (
+            <>
+              {leaveTypes.length===0 ? (
+                <div style={{background:"#FBE3E6",color:"#A30E26",borderRadius:9,padding:"10px 14px",fontSize:13,fontWeight:600}}>
+                  No leave types available. Ask your administrator to add one.
+                </div>
+              ) : (
+                <>
+                  <Sel label="Leave Type" value={leaveTypeId} onChange={e=>setLeaveTypeId(e.target.value)}>
+                    {leaveTypes.map(lt=><option key={lt.id} value={lt.id}>{lt.name}</option>)}
+                  </Sel>
+                  <div style={{background:REQUEST_TYPES.leave.bg,borderRadius:9,padding:"10px 14px",fontSize:13,
+                    color:REQUEST_TYPES.leave.color,fontWeight:600}}>
+                    Remaining: {fmtDays(remainingForLeave)}
+                  </div>
+                  <Inp label="Number of Days (0.5 – 5, half-day increments)"
+                    type="number" min="0.5" max="5" step="0.5"
+                    value={days} onChange={e=>setDays(e.target.value)} placeholder="e.g. 1"/>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              {type==="offset" && (
+                <div style={{background:REQUEST_TYPES.offset.bg,borderRadius:9,padding:"10px 14px",fontSize:13,
+                  color:REQUEST_TYPES.offset.color,fontWeight:600}}>
+                  Available: {fmt(maxOffsetH)} (from OT/Duty on Day-Off Credits)
+                </div>
+              )}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                <Inp label="Start Time" type="time" value={startTime} onChange={e=>setStartTime(e.target.value)}/>
+                <Inp label="End Time"   type="time" value={endTime}   onChange={e=>setEndTime(e.target.value)}/>
+              </div>
+              {startTime && endTime && computedHours>0 && (
+                <p style={{margin:0,fontSize:12.5,color:"#666"}}>Duration: <b>{fmt(computedHours)}</b></p>
+              )}
+            </>
+          )}
+
           <Txtarea label="Reason" value={reason} onChange={e=>setReason(e.target.value)} placeholder="Briefly explain…"/>
           {err&&<p style={{margin:0,color:"#A30E26",fontSize:13}}>{err}</p>}
           <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
@@ -461,7 +591,7 @@ function TimesheetDoc({employees,requests,balances,filters,stamp}){
 
       {/* ── PER-EMPLOYEE SECTIONS ── */}
       {emps.map((emp,ei)=>{
-        const bal=balances[emp.id]||{creditsOvertime:0,creditsDutyOff:0,leave:0,offsetUsed:0};
+        const bal=balances[emp.id]||{creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:{}};
         let empReqs=requests.filter(r=>r.employeeId===emp.id);
         if(filters.month){
           empReqs=empReqs.filter(r=>r.date.startsWith(filters.month));
@@ -555,7 +685,7 @@ function TimesheetDoc({employees,requests,balances,filters,stamp}){
                             {REQUEST_TYPES[r.type].label}
                           </span>
                         </td>
-                        <td style={{...TDC,fontWeight:700}}>{fmt(r.hours)}</td>
+                        <td style={{...TDC,fontWeight:700,whiteSpace:"nowrap"}}>{reqDurationText(r,leaveTypes)}</td>
                         <td style={TDC}>
                           <span style={{background:ss.bg,color:ss.color,padding:"2px 7px",
                             borderRadius:10,fontSize:10.5,fontWeight:700}}>{ss.label}</span>
@@ -701,7 +831,7 @@ function TimesheetExport({employees,requests,balances}){
 
     // ── Sheet 1: Balance Summary ──
     const summaryData = scopedEmps.map(emp=>{
-      const bal = balances[emp.id] || {creditsOvertime:0,creditsDutyOff:0,leave:0,offsetUsed:0};
+      const bal = balances[emp.id] || {creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:{}};
       return {
         "Employee Name": emp.name,
         "Department": emp.department,
@@ -1029,7 +1159,7 @@ function PrintRequestLogDoc({requests,employees,filters,stamp}){
                       padding:"2px 6px",borderRadius:9,fontSize:10,fontWeight:700}}>{REQUEST_TYPES[r.type].label}</span>
                   </td>
                   <td style={{...TD,whiteSpace:"nowrap"}}>{fmtDate(r.date)}</td>
-                  <td style={{...TD,textAlign:"center",fontWeight:700}}>{fmt(r.hours)}</td>
+                  <td style={{...TD,textAlign:"center",fontWeight:700,whiteSpace:"nowrap"}}>{reqDurationText(r,leaveTypes)}</td>
                   <td style={{...TD,textAlign:"center"}}>
                     <span style={{background:ss.bg,color:ss.color,padding:"2px 6px",borderRadius:9,fontSize:10,fontWeight:700}}>{ss.label}</span>
                   </td>
@@ -1126,7 +1256,7 @@ function StatBox({label,value,color="#1E3A6E"}){
     </div>
   );
 }
-function AdminPanel({requests,employees,balances,onApprove,onReject,onShowTimesheet}){
+function AdminPanel({requests,employees,balances,leaveTypes,onApprove,onReject,onShowTimesheet}){
   const [filter,setFilter]=useState("pending");
   const [deptFilter,setDeptFilter]=useState("");
   const [empSearch,setEmpSearch]=useState("");
@@ -1217,7 +1347,7 @@ function AdminPanel({requests,employees,balances,onApprove,onReject,onShowTimesh
                     <p style={{margin:0,fontSize:12,color:"#999"}}>{emp.department}</p>
                   </div>
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                   {Object.entries(BALANCE_TYPES).map(([k,t])=>(
                     <div key={k} style={{background:t.bg,borderRadius:8,padding:"7px 8px"}}>
                       <p style={{margin:0,fontSize:10,color:t.color,fontWeight:700,lineHeight:1.2}}>{k==="credits"?"OT/Duty Credits":t.label}</p>
@@ -1225,6 +1355,18 @@ function AdminPanel({requests,employees,balances,onApprove,onReject,onShowTimesh
                     </div>
                   ))}
                 </div>
+                {leaveTypes.length>0 && (
+                  <div style={{marginTop:8,background:"#FDF3E7",borderRadius:8,padding:"7px 9px"}}>
+                    <p style={{margin:0,fontSize:10,color:"#E8913A",fontWeight:700,lineHeight:1.2}}>LEAVE BALANCES</p>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:4}}>
+                      {leaveTypes.map(lt=>(
+                        <span key={lt.id} style={{fontSize:11,fontWeight:700,color:"#B07026"}}>
+                          {lt.name}: <span style={{color:"#E8913A"}}>{fmtDays(leaveRemaining(bal,lt.id))}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </Card>
             );
           })}
@@ -1253,7 +1395,7 @@ function AdminPanel({requests,employees,balances,onApprove,onReject,onShowTimesh
                       <TypeChip type={r.type}/><Badge status={r.status}/>
                     </div>
                     <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:13,color:"#666"}}>
-                      <span>📅 {r.date}</span><span>⏱ {fmt(r.hours)}</span>
+                      <span>📅 {r.date}</span><span>⏱ {reqDurationText(r,leaveTypes)}</span>
                       <span style={{color:"#aaa"}}>Filed {r.submittedAt}</span>
                     </div>
                     <p style={{margin:"6px 0 0",fontSize:13,color:"#777"}}>{r.reason}</p>
@@ -1892,19 +2034,26 @@ export default function App(){
   const [employees,setEmployees]= useState(SEED_EMPLOYEES);
   const [requests, setRequests] = useState(SEED_REQUESTS);
   const [balances, setBalances] = useState(SEED_BALANCES);
+  const [leaveTypes,setLeaveTypes] = useState(SEED_LEAVE_TYPES);
   const [toast,    setToast]    = useState(null);
 
   function showToast(msg,color="#1DB584"){setToast({msg,color});setTimeout(()=>setToast(null),3000);}
+  function freshLeaveBalances(){
+    const m={}; leaveTypes.forEach(lt=>{ m[lt.id]=lt.defaultDays; }); return m;
+  }
   function handleLogin(u){setUser(u);setView(u.role==="admin"?"admin":"dashboard");}
   function handleLogout(){setUser(null);setView("dashboard");}
   function handleRegister(newEmp){
     setEmployees(prev=>[...prev,newEmp]);
-    setBalances(prev=>({...prev,[newEmp.id]:{creditsOvertime:0,creditsDutyOff:0,leave:0,offsetUsed:0}}));
+    setBalances(prev=>({...prev,[newEmp.id]:{creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:freshLeaveBalances()}}));
     showToast("Account created — you can now sign in.");
   }
   function handleNewRequest(data){
     setRequests(prev=>[...prev,{id:genId("R"),employeeId:user.id,employeeName:user.name,
-      type:data.type,date:data.date,hours:data.hours,reason:data.reason,
+      type:data.type,date:data.date,
+      startTime:data.startTime||null, endTime:data.endTime||null,
+      leaveTypeId:data.leaveTypeId||null, days:data.days||null,
+      hours:data.hours,reason:data.reason,
       status:"pending",submittedAt:today(),reviewedAt:null,reviewNote:""}]);
     showToast("Request submitted!"); setView("dashboard");
   }
@@ -1913,10 +2062,9 @@ export default function App(){
     setRequests(prev=>prev.map(r=>r.id===reqId?{...r,status:"approved",reviewedAt:today(),reviewNote:note}:r));
     setBalances(prev=>{
       const b={...(prev[req.employeeId]||{})};
-      if(req.type==="overtime")   b.creditsOvertime=(b.creditsOvertime||0)+req.hours; // separate OT pool
-      if(req.type==="dutyDayOff") b.creditsDutyOff =(b.creditsDutyOff ||0)+req.hours;  // separate Duty pool
+      if(req.type==="overtime")   b.creditsOvertime=(b.creditsOvertime||0)+req.hours;
+      if(req.type==="dutyDayOff") b.creditsDutyOff =(b.creditsDutyOff ||0)+req.hours;
       if(req.type==="offset"){
-        // Draw down the combined OT/Duty total — OT first, then Duty for the remainder
         let remaining = req.hours;
         const ot = b.creditsOvertime||0;
         const fromOt = Math.min(ot, remaining);
@@ -1926,9 +2074,13 @@ export default function App(){
           const duty = b.creditsDutyOff||0;
           b.creditsDutyOff = Math.max(0, duty - remaining);
         }
-        b.offsetUsed = (b.offsetUsed||0)+req.hours; // running total of offset used
+        b.offsetUsed = (b.offsetUsed||0)+req.hours;
       }
-      if(req.type==="leave")      b.leave     =Math.max(0,(b.leave   ||0)-req.hours);
+      if(req.type==="leave" && req.leaveTypeId){
+        const lb = {...(b.leaveBalances||{})};
+        lb[req.leaveTypeId] = Math.max(0, (lb[req.leaveTypeId]||0) - (req.days||0));
+        b.leaveBalances = lb;
+      }
       return{...prev,[req.employeeId]:b};
     });
     showToast("Request approved.");
@@ -1936,6 +2088,58 @@ export default function App(){
   function handleReject(reqId,note){
     setRequests(prev=>prev.map(r=>r.id===reqId?{...r,status:"rejected",reviewedAt:today(),reviewNote:note}:r));
     showToast("Request rejected.","#C8102E");
+  }
+  function handleAddLeaveType(name, defaultDays){
+    const trimmed=(name||"").trim();
+    if(!trimmed){ showToast("Leave type name required.","#A30E26"); return; }
+    if(leaveTypes.some(l=>l.name.toLowerCase()===trimmed.toLowerCase())){
+      showToast("That leave type already exists.","#A30E26"); return;
+    }
+    const id="LT_"+Date.now();
+    const days=Math.max(0, parseFloat(defaultDays)||0);
+    setLeaveTypes(prev=>[...prev,{id,name:trimmed,defaultDays:days}]);
+    // grant new type's default allowance to all existing employees who don't have it
+    setBalances(prev=>{
+      const next={...prev};
+      Object.keys(next).forEach(empId=>{
+        const b={...next[empId]};
+        const lb={...(b.leaveBalances||{})};
+        if(lb[id]==null) lb[id]=days;
+        b.leaveBalances=lb;
+        next[empId]=b;
+      });
+      return next;
+    });
+    showToast(`Leave type "${trimmed}" added.`);
+  }
+  function handleUpdateLeaveType(id, changes){
+    setLeaveTypes(prev=>prev.map(l=>l.id===id?{...l,...changes}:l));
+    showToast("Leave type updated.");
+  }
+  function handleDeleteLeaveType(id){
+    setLeaveTypes(prev=>prev.filter(l=>l.id!==id));
+    setBalances(prev=>{
+      const next={...prev};
+      Object.keys(next).forEach(empId=>{
+        const b={...next[empId]};
+        const lb={...(b.leaveBalances||{})};
+        delete lb[id];
+        b.leaveBalances=lb;
+        next[empId]=b;
+      });
+      return next;
+    });
+    showToast("Leave type removed.","#C8102E");
+  }
+  function handleUpdateEmployeeLeave(empId, leaveTypeId, days){
+    setBalances(prev=>{
+      const b={...(prev[empId]||{})};
+      const lb={...(b.leaveBalances||{})};
+      lb[leaveTypeId]=Math.max(0, parseFloat(days)||0);
+      b.leaveBalances=lb;
+      return{...prev,[empId]:b};
+    });
+    showToast("Leave allowance updated.");
   }
   function handleUpdateProfile(changes){
     setUser(prev=>({...prev,...changes}));
@@ -1951,7 +2155,7 @@ export default function App(){
   function handleAdminCreateAccount(newAcc){
     setEmployees(prev=>[...prev,newAcc]);
     if(newAcc.role==="employee"){
-      setBalances(prev=>({...prev,[newAcc.id]:{creditsOvertime:0,creditsDutyOff:0,leave:0,offsetUsed:0}}));
+      setBalances(prev=>({...prev,[newAcc.id]:{creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:freshLeaveBalances()}}));
     }
     showToast(`Account created for ${newAcc.name}.`);
   }
@@ -1961,7 +2165,7 @@ export default function App(){
     setBalances(prev=>{
       const next={...prev};
       newAccs.forEach(acc=>{
-        if(acc.role==="employee") next[acc.id]={creditsOvertime:0,creditsDutyOff:0,leave:0,offsetUsed:0};
+        if(acc.role==="employee") next[acc.id]={creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:freshLeaveBalances()};
       });
       return next;
     });
