@@ -1182,7 +1182,7 @@ function PrintRequestLogDoc({requests,employees,filters,stamp}){
   );
 }
 
-function LogPrintModal({requests,employees,onClose}){
+function LogPrintModal({requests,employees,leaveTypes,onClose}){
   const [empF,setEmpF]=useState(""); const [typeF,setTypeF]=useState("");
   const [statusF,setStatusF]=useState(""); const [fromF,setFromF]=useState(""); const [toF,setToF]=useState("");
   const stamp=nowStamp();
