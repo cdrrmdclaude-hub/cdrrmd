@@ -518,7 +518,7 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── PRINTABLE TIMESHEET DOCUMENT ─────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
-function TimesheetDoc({employees,requests,balances,filters,stamp}){
+function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
   // apply filters
   let emps = employees.filter(e=>e.role==="employee");
   if(filters.department) emps=emps.filter(e=>e.department===filters.department);
