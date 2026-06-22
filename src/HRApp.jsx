@@ -754,7 +754,7 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── TIMESHEET EXPORT PAGE ────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
-function TimesheetExport({employees,requests,balances}){
+function TimesheetExport({employees,requests,balances,leaveTypes}){
   const empList=employees.filter(e=>e.role==="employee");
 
   // filters
