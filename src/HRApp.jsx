@@ -2236,15 +2236,18 @@ export default function App(){
       </div>
       {/* Content */}
       <div style={{maxWidth:1100,margin:"0 auto",padding:"32px 24px"}}>
-        {view==="dashboard"   && <EmployeeDashboard user={user} requests={requests} balances={balances} onNewRequest={()=>setView("new-request")}/>}
-        {view==="new-request" && <NewRequestForm user={user} balances={balances} onSubmit={handleNewRequest} onCancel={()=>setView("dashboard")}/>}
-        {view==="admin"       && <AdminPanel requests={requests} employees={employees} balances={balances}
+        {view==="dashboard"   && <EmployeeDashboard user={user} requests={requests} balances={balances} leaveTypes={leaveTypes} onNewRequest={()=>setView("new-request")}/>}
+        {view==="new-request" && <NewRequestForm user={user} balances={balances} leaveTypes={leaveTypes} onSubmit={handleNewRequest} onCancel={()=>setView("dashboard")}/>}
+        {view==="admin"       && <AdminPanel requests={requests} employees={employees} balances={balances} leaveTypes={leaveTypes}
             onApprove={handleApprove} onReject={handleReject} onShowTimesheet={()=>setView("timesheet")}/>}
-        {view==="timesheet"   && <TimesheetExport employees={employees} requests={requests} balances={balances}/>}
+        {view==="timesheet"   && <TimesheetExport employees={employees} requests={requests} balances={balances} leaveTypes={leaveTypes}/>}
         {view==="accounts"    && <ManageAccounts employees={employees} currentUserId={user.id}
+            balances={balances} leaveTypes={leaveTypes}
             onCreate={handleAdminCreateAccount} onImportBatch={handleAdminBatchCreateAccounts}
             onSaveDetails={handleAdminSaveDetails}
-            onResetPassword={handleAdminResetPassword} onDelete={handleAdminDeleteAccount}/>}
+            onResetPassword={handleAdminResetPassword} onDelete={handleAdminDeleteAccount}
+            onAddLeaveType={handleAddLeaveType} onUpdateLeaveType={handleUpdateLeaveType}
+            onDeleteLeaveType={handleDeleteLeaveType} onUpdateEmployeeLeave={handleUpdateEmployeeLeave}/>}
         {view==="settings"    && <AccountSettings user={user} onUpdateProfile={handleUpdateProfile} onChangePassword={handleChangePassword} onBack={()=>setView(isAdmin?"admin":"dashboard")}/>}
       </div>
       {toast&&(
