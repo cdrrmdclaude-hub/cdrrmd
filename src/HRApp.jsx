@@ -2053,6 +2053,11 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
         <span style={{fontSize:13,color:"#999"}}>{filtered.length} account{filtered.length!==1?"s":""}</span>
       </div>
 
+      {/* Leave Types Management */}
+      <LeaveTypesManager leaveTypes={leaveTypes}
+        onAdd={onAddLeaveType} onUpdate={onUpdateLeaveType} onDelete={onDeleteLeaveType}/>
+
+
       {/* Account list */}
       <div style={{display:"flex",flexDirection:"column",gap:10}}>
         {filtered.length===0 && <Card><p style={{margin:0,color:"#aaa",fontSize:14}}>No accounts match these filters.</p></Card>}
