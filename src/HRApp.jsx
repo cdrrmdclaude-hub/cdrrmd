@@ -1936,7 +1936,64 @@ function EditAccountModal({account,onClose,onSave,onResetPassword,onDelete,exist
   );
 }
 
-function ManageAccounts({employees,currentUserId,onCreate,onImportBatch,onSaveDetails,onResetPassword,onDelete}){
+function LeaveTypesManager({leaveTypes,onAdd,onUpdate,onDelete}){
+  const [name,setName]=useState("");
+  const [days,setDays]=useState("");
+  const [confirmDel,setConfirmDel]=useState(null);
+  function add(){
+    if(!name.trim()) return;
+    onAdd(name, days||0);
+    setName(""); setDays("");
+  }
+  return(
+    <Card style={{padding:"16px 18px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+        <div>
+          <p style={{margin:0,fontWeight:800,fontSize:15,color:"#1a1a1a"}}>🗓 Leave Types</p>
+          <p style={{margin:"2px 0 0",fontSize:12,color:"#888"}}>Add or remove leave types and set the default allowance for new employees.</p>
+        </div>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
+        {leaveTypes.length===0 && <p style={{margin:0,fontSize:13,color:"#aaa"}}>No leave types yet. Add one below.</p>}
+        {leaveTypes.map(lt=>(
+          <div key={lt.id} style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",
+            background:"#FDF3E7",borderRadius:9,padding:"8px 12px"}}>
+            <input type="text" value={lt.name}
+              onChange={e=>onUpdate(lt.id,{name:e.target.value})}
+              style={{flex:"1 1 160px",minWidth:120,border:"1px solid #E8C690",borderRadius:7,
+                padding:"5px 9px",fontSize:13,fontFamily:"inherit",background:"#fff",color:"#1a1a1a"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              <input type="number" min="0" step="0.5" value={lt.defaultDays}
+                onChange={e=>onUpdate(lt.id,{defaultDays:Math.max(0,parseFloat(e.target.value)||0)})}
+                style={{width:70,border:"1px solid #E8C690",borderRadius:7,
+                  padding:"5px 9px",fontSize:13,fontFamily:"inherit",background:"#fff",color:"#1a1a1a"}}/>
+              <span style={{fontSize:12,color:"#B07026",fontWeight:600}}>days default</span>
+            </div>
+            {confirmDel===lt.id ? (
+              <div style={{display:"flex",gap:6}}>
+                <Btn size="sm" variant="ghost" onClick={()=>setConfirmDel(null)}>Cancel</Btn>
+                <Btn size="sm" variant="danger" onClick={()=>{onDelete(lt.id);setConfirmDel(null);}}>Confirm</Btn>
+              </div>
+            ) : (
+              <Btn size="sm" variant="danger" onClick={()=>setConfirmDel(lt.id)}>Delete</Btn>
+            )}
+          </div>
+        ))}
+      </div>
+      <div style={{borderTop:"1px dashed #E2E5EA",paddingTop:12,display:"flex",gap:8,flexWrap:"wrap",alignItems:"flex-end"}}>
+        <div style={{flex:"1 1 200px",minWidth:140}}>
+          <Inp label="New leave type name" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Bereavement Leave"/>
+        </div>
+        <div style={{width:120}}>
+          <Inp label="Default days" type="number" min="0" step="0.5" value={days} onChange={e=>setDays(e.target.value)} placeholder="e.g. 5"/>
+        </div>
+        <Btn onClick={add}>+ Add Type</Btn>
+      </div>
+    </Card>
+  );
+}
+
+function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,onImportBatch,onSaveDetails,onResetPassword,onDelete,onAddLeaveType,onUpdateLeaveType,onDeleteLeaveType,onUpdateEmployeeLeave}){
   const [showAdd,setShowAdd]=useState(false);
   const [showImport,setShowImport]=useState(false);
   const [editing,setEditing]=useState(null); // employee object or null
@@ -1962,6 +2019,8 @@ function ManageAccounts({employees,currentUserId,onCreate,onImportBatch,onSaveDe
       )}
       {editing && (
         <EditAccountModal account={editing} existingEmails={existingEmails.filter(e=>e!==editing.email)}
+          balance={balances[editing.id]} leaveTypes={leaveTypes}
+          onUpdateEmployeeLeave={onUpdateEmployeeLeave}
           onClose={()=>setEditing(null)}
           onSave={(id,changes)=>{ onSaveDetails(id,changes); setEditing(prev=>prev?{...prev,...changes}:prev); }}
           onResetPassword={(id,pw)=>onResetPassword(id,pw)}
