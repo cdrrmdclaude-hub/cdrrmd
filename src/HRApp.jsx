@@ -931,7 +931,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
 
       {/* Hidden print zone */}
       <div id="print-zone">
-        <TimesheetDoc employees={employees} requests={requests} balances={balances} filters={filters} stamp={stamp}/>
+        <TimesheetDoc employees={employees} requests={requests} balances={balances} leaveTypes={leaveTypes} filters={filters} stamp={stamp}/>
       </div>
 
       {/* Page title */}
@@ -1057,7 +1057,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
           </div>
           <div style={{border:"2px solid #E2E5EA",borderRadius:12,padding:"32px 36px",
             background:"#fff",boxShadow:"0 4px 24px rgba(0,0,0,0.06)",overflowX:"auto"}}>
-            <TimesheetDoc employees={employees} requests={requests} balances={balances} filters={filters} stamp={stamp}/>
+            <TimesheetDoc employees={employees} requests={requests} balances={balances} leaveTypes={leaveTypes} filters={filters} stamp={stamp}/>
           </div>
         </div>
       )}
@@ -1278,7 +1278,7 @@ function AdminPanel({requests,employees,balances,leaveTypes,onApprove,onReject,o
   }
   return(
     <div style={{display:"flex",flexDirection:"column",gap:24}}>
-      {showLogModal&&<LogPrintModal requests={requests} employees={employees} onClose={()=>setShowLogModal(false)}/>}
+      {showLogModal&&<LogPrintModal requests={requests} employees={employees} leaveTypes={leaveTypes} onClose={()=>setShowLogModal(false)}/>}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
         <div>
           <h2 style={{margin:0,fontSize:22,fontWeight:800,color:"#1a1a1a",letterSpacing:"-0.02em"}}>Admin Overview</h2>
