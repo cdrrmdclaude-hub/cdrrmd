@@ -1172,7 +1172,7 @@ function PrintRequestLogDoc({requests,employees,filters,stamp}){
                     <span style={{background:REQUEST_TYPES[r.type].bg,color:REQUEST_TYPES[r.type].color,
                       padding:"2px 6px",borderRadius:9,fontSize:10,fontWeight:700}}>{REQUEST_TYPES[r.type].label}</span>
                   </td>
-                  <td style={{...TD,whiteSpace:"nowrap"}}>{fmtDate(r.date)}</td>
+                  <td style={{...TD,whiteSpace:"nowrap"}}>{dateRangeText(r)}</td>
                   <td style={{...TD,textAlign:"center",fontWeight:700,whiteSpace:"nowrap"}}>{reqDurationText(r,leaveTypes)}</td>
                   <td style={{...TD,textAlign:"center"}}>
                     <span style={{background:ss.bg,color:ss.color,padding:"2px 6px",borderRadius:9,fontSize:10,fontWeight:700}}>{ss.label}</span>
