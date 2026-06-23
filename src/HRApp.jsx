@@ -122,6 +122,10 @@ function fmtDate(d){
   const [y,m,day]=d.split("-");
   return `${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m-1]} ${+day}, ${y}`;
 }
+function dateRangeText(r){
+  if(r.endDate && r.endDate!==r.date) return `${fmtDate(r.date)} – ${fmtDate(r.endDate)}`;
+  return fmtDate(r.date);
+}
 function nowStamp(){
   const n=new Date();
   return n.toLocaleDateString("en-PH",{year:"numeric",month:"long",day:"numeric"})+
@@ -387,7 +391,7 @@ function EmployeeDashboard({user,requests,balances,leaveTypes,onNewRequest}){
               <Card key={r.id} style={{padding:"14px 18px"}}>
                 <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:10}}>
                   <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-                    <TypeChip type={r.type}/><span style={{fontSize:13,color:"#555"}}>{r.date}</span>
+                    <TypeChip type={r.type}/><span style={{fontSize:13,color:"#555"}}>{dateRangeText(r)}</span>
                     <span style={{fontSize:13,fontWeight:700,color:"#333"}}>{reqDurationText(r,leaveTypes)}</span>
                   </div>
                   <Badge status={r.status}/>
@@ -407,6 +411,7 @@ function EmployeeDashboard({user,requests,balances,leaveTypes,onNewRequest}){
 function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
   const [type,setType]=useState("overtime");
   const [date,setDate]=useState(today());
+  const [endDate,setEndDate]=useState(today());
   const [startTime,setStartTime]=useState("");
   const [endTime,setEndTime]=useState("");
   const [leaveTypeId,setLeaveTypeId]=useState(leaveTypes[0]?.id || "");
@@ -419,7 +424,9 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
   const remainingForLeave = leaveTypeId ? leaveRemaining(bal, leaveTypeId) : 0;
 
   function go(){
-    if(!date){setErr("Select a date.");return;}
+    if(!date){setErr("Select a start date.");return;}
+    if(!endDate){setErr("Select an end date.");return;}
+    if(endDate<date){setErr("End date must be on or after start date.");return;}
     if(!reason.trim()){setErr("Provide a reason.");return;}
     if(type==="leave"){
       if(!leaveTypeId){setErr("Select a leave type.");return;}
@@ -429,7 +436,7 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
       if((d*10)%5!==0){setErr("Days must be in 0.5 increments.");return;}
       if(d>remainingForLeave){setErr(`Only ${fmtDays(remainingForLeave)} remaining for this leave type.`);return;}
       setErr("");
-      onSubmit({type,date,leaveTypeId,days:d,hours:d*8,reason:reason.trim()});
+      onSubmit({type,date,endDate,leaveTypeId,days:d,hours:d*8,reason:reason.trim()});
       return;
     }
     if(!startTime||!endTime){setErr("Enter both start and end time.");return;}
@@ -438,7 +445,7 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
       setErr(`Only ${fmt(maxOffsetH)} of OT/Duty credits available.`);return;
     }
     setErr("");
-    onSubmit({type,date,startTime,endTime,hours:computedHours,reason:reason.trim()});
+    onSubmit({type,date,endDate,startTime,endTime,hours:computedHours,reason:reason.trim()});
   }
 
   return(
@@ -453,7 +460,10 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
             {Object.entries(REQUEST_TYPES).map(([k,v])=><option key={k} value={k}>{v.icon} {v.label}</option>)}
           </Sel>
 
-          <Inp label="Date" type="date" value={date} onChange={e=>setDate(e.target.value)}/>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <Inp label="Start Date" type="date" value={date} onChange={e=>{setDate(e.target.value); if(endDate<e.target.value) setEndDate(e.target.value);}}/>
+            <Inp label="End Date"   type="date" value={endDate} min={date} onChange={e=>setEndDate(e.target.value)}/>
+          </div>
 
           {type==="leave" ? (
             <>
@@ -677,7 +687,7 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
                     return(
                       <tr key={r.id} style={{background:i%2===0?"#fff":"#FAFBFC"}}>
                         <td style={{...TDC,color:"#bbb",fontSize:10}}>{i+1}</td>
-                        <td style={{...TD,whiteSpace:"nowrap"}}>{fmtDate(r.date)}</td>
+                        <td style={{...TD,whiteSpace:"nowrap"}}>{dateRangeText(r)}</td>
                         <td style={TD}>
                           <span style={{background:REQUEST_TYPES[r.type].bg,color:REQUEST_TYPES[r.type].color,
                             padding:"2px 7px",borderRadius:10,fontSize:10.5,fontWeight:700,whiteSpace:"nowrap"}}>
@@ -869,7 +879,8 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
         "Employee Name": r.employeeName,
         "Department": emp?.department || "",
         "Type": REQUEST_TYPES[r.type]?.label || r.type,
-        "Date": r.date,
+        "Start Date": r.date,
+        "End Date":   r.endDate || r.date,
         "Start Time": r.startTime || "",
         "End Time":   r.endTime   || "",
         "Hours":      r.type==="leave" ? "" : (r.hours||0),
@@ -1162,7 +1173,7 @@ function PrintRequestLogDoc({requests,employees,filters,stamp}){
                     <span style={{background:REQUEST_TYPES[r.type].bg,color:REQUEST_TYPES[r.type].color,
                       padding:"2px 6px",borderRadius:9,fontSize:10,fontWeight:700}}>{REQUEST_TYPES[r.type].label}</span>
                   </td>
-                  <td style={{...TD,whiteSpace:"nowrap"}}>{fmtDate(r.date)}</td>
+                  <td style={{...TD,whiteSpace:"nowrap"}}>{dateRangeText(r)}</td>
                   <td style={{...TD,textAlign:"center",fontWeight:700,whiteSpace:"nowrap"}}>{reqDurationText(r,leaveTypes)}</td>
                   <td style={{...TD,textAlign:"center"}}>
                     <span style={{background:ss.bg,color:ss.color,padding:"2px 6px",borderRadius:9,fontSize:10,fontWeight:700}}>{ss.label}</span>
@@ -1399,7 +1410,7 @@ function AdminPanel({requests,employees,balances,leaveTypes,onApprove,onReject,o
                       <TypeChip type={r.type}/><Badge status={r.status}/>
                     </div>
                     <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:13,color:"#666"}}>
-                      <span>📅 {r.date}</span><span>⏱ {reqDurationText(r,leaveTypes)}</span>
+                      <span>📅 {dateRangeText(r)}</span><span>⏱ {reqDurationText(r,leaveTypes)}</span>
                       <span style={{color:"#aaa"}}>Filed {r.submittedAt}</span>
                     </div>
                     <p style={{margin:"6px 0 0",fontSize:13,color:"#777"}}>{r.reason}</p>
@@ -2151,7 +2162,7 @@ export default function App(){
   }
   function handleNewRequest(data){
     setRequests(prev=>[...prev,{id:genId("R"),employeeId:user.id,employeeName:user.name,
-      type:data.type,date:data.date,
+      type:data.type,date:data.date,endDate:data.endDate||data.date,
       startTime:data.startTime||null, endTime:data.endTime||null,
       leaveTypeId:data.leaveTypeId||null, days:data.days||null,
       hours:data.hours,reason:data.reason,
