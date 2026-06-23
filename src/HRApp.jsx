@@ -839,6 +839,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
         "Overtime Credits (h)": bal.creditsOvertime||0,
         "Duty on Day-Off Credits (h)": bal.creditsDutyOff||0,
         "Total OT/Duty Credits (h)": creditsTotal(bal),
+        "Remaining OT/Duty Credits Left to Use (h)": Math.max(0, creditsTotal(bal) - (bal.offsetUsed||0)),
         "Offset Used (h)": bal.offsetUsed||0,
       };
       (leaveTypes||[]).forEach(lt=>{ row[`${lt.name} (days)`] = leaveRemaining(bal,lt.id); });
@@ -852,6 +853,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       "Overtime Credits (h)": sumOf("Overtime Credits (h)"),
       "Duty on Day-Off Credits (h)": sumOf("Duty on Day-Off Credits (h)"),
       "Total OT/Duty Credits (h)": sumOf("Total OT/Duty Credits (h)"),
+      "Remaining OT/Duty Credits Left to Use (h)": sumOf("Remaining OT/Duty Credits Left to Use (h)"),
       "Offset Used (h)": sumOf("Offset Used (h)"),
     };
     (leaveTypes||[]).forEach(lt=>{ totalRow[`${lt.name} (days)`] = sumOf(`${lt.name} (days)`); });
