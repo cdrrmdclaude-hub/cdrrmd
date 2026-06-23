@@ -839,6 +839,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
         "Overtime Credits (h)": bal.creditsOvertime||0,
         "Duty on Day-Off Credits (h)": bal.creditsDutyOff||0,
         "Total OT/Duty Credits (h)": creditsTotal(bal),
+        "Remaining OT/Duty Credits Left to Use (h)": Math.max(0, creditsTotal(bal) - (bal.offsetUsed||0)),
         "Offset Used (h)": bal.offsetUsed||0,
       };
       (leaveTypes||[]).forEach(lt=>{ row[`${lt.name} (days)`] = leaveRemaining(bal,lt.id); });
