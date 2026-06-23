@@ -2161,7 +2161,7 @@ export default function App(){
   }
   function handleNewRequest(data){
     setRequests(prev=>[...prev,{id:genId("R"),employeeId:user.id,employeeName:user.name,
-      type:data.type,date:data.date,
+      type:data.type,date:data.date,endDate:data.endDate||data.date,
       startTime:data.startTime||null, endTime:data.endTime||null,
       leaveTypeId:data.leaveTypeId||null, days:data.days||null,
       hours:data.hours,reason:data.reason,
