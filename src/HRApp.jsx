@@ -1409,7 +1409,7 @@ function AdminPanel({requests,employees,balances,leaveTypes,onApprove,onReject,o
                       <TypeChip type={r.type}/><Badge status={r.status}/>
                     </div>
                     <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:13,color:"#666"}}>
-                      <span>📅 {r.date}</span><span>⏱ {reqDurationText(r,leaveTypes)}</span>
+                      <span>📅 {dateRangeText(r)}</span><span>⏱ {reqDurationText(r,leaveTypes)}</span>
                       <span style={{color:"#aaa"}}>Filed {r.submittedAt}</span>
                     </div>
                     <p style={{margin:"6px 0 0",fontSize:13,color:"#777"}}>{r.reason}</p>
