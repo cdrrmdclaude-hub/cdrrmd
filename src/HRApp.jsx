@@ -460,7 +460,10 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
             {Object.entries(REQUEST_TYPES).map(([k,v])=><option key={k} value={k}>{v.icon} {v.label}</option>)}
           </Sel>
 
-          <Inp label="Date" type="date" value={date} onChange={e=>setDate(e.target.value)}/>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <Inp label="Start Date" type="date" value={date} onChange={e=>{setDate(e.target.value); if(endDate<e.target.value) setEndDate(e.target.value);}}/>
+            <Inp label="End Date"   type="date" value={endDate} min={date} onChange={e=>setEndDate(e.target.value)}/>
+          </div>
 
           {type==="leave" ? (
             <>
