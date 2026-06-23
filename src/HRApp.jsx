@@ -424,7 +424,9 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
   const remainingForLeave = leaveTypeId ? leaveRemaining(bal, leaveTypeId) : 0;
 
   function go(){
-    if(!date){setErr("Select a date.");return;}
+    if(!date){setErr("Select a start date.");return;}
+    if(!endDate){setErr("Select an end date.");return;}
+    if(endDate<date){setErr("End date must be on or after start date.");return;}
     if(!reason.trim()){setErr("Provide a reason.");return;}
     if(type==="leave"){
       if(!leaveTypeId){setErr("Select a leave type.");return;}
@@ -434,7 +436,7 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
       if((d*10)%5!==0){setErr("Days must be in 0.5 increments.");return;}
       if(d>remainingForLeave){setErr(`Only ${fmtDays(remainingForLeave)} remaining for this leave type.`);return;}
       setErr("");
-      onSubmit({type,date,leaveTypeId,days:d,hours:d*8,reason:reason.trim()});
+      onSubmit({type,date,endDate,leaveTypeId,days:d,hours:d*8,reason:reason.trim()});
       return;
     }
     if(!startTime||!endTime){setErr("Enter both start and end time.");return;}
@@ -443,7 +445,7 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
       setErr(`Only ${fmt(maxOffsetH)} of OT/Duty credits available.`);return;
     }
     setErr("");
-    onSubmit({type,date,startTime,endTime,hours:computedHours,reason:reason.trim()});
+    onSubmit({type,date,endDate,startTime,endTime,hours:computedHours,reason:reason.trim()});
   }
 
   return(
