@@ -560,6 +560,7 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
         const allApproved=requests.filter(r=>r.status==="approved"&&emps.find(e=>e.id===r.employeeId));
         const totals=TYPE_KEYS.reduce((a,k)=>({...a,[k]:0}),{});
         allApproved.forEach(r=>{totals[r.type]=(totals[r.type]||0)+r.hours;});
+        const totalRemainingCredits=emps.reduce((s,e)=>s+creditsTotal(balances[e.id]||{}),0);
         return(
           <div style={{marginBottom:22}}>
             <div style={{fontSize:11,fontWeight:700,color:"#999",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:8}}>
@@ -575,6 +576,13 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
                   <div style={{fontSize:10,color:"#aaa"}}>total approved</div>
                 </div>
               ))}
+              <div style={{flex:"1 1 140px",border:"2px solid #1E3A6E",background:"#EEF2F9",
+                borderRadius:8,padding:"8px 12px",minWidth:140}}>
+                <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",
+                  color:"#1E3A6E",letterSpacing:"0.07em"}}>Total OT/Duty Credits</div>
+                <div style={{fontSize:22,fontWeight:900,color:"#1E3A6E",marginTop:2}}>{fmt(totalRemainingCredits)}</div>
+                <div style={{fontSize:10,color:"#aaa"}}>remaining (all employees)</div>
+              </div>
             </div>
           </div>
         );
