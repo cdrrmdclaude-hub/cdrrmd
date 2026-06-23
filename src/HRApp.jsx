@@ -687,7 +687,7 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
                     return(
                       <tr key={r.id} style={{background:i%2===0?"#fff":"#FAFBFC"}}>
                         <td style={{...TDC,color:"#bbb",fontSize:10}}>{i+1}</td>
-                        <td style={{...TD,whiteSpace:"nowrap"}}>{fmtDate(r.date)}</td>
+                        <td style={{...TD,whiteSpace:"nowrap"}}>{dateRangeText(r)}</td>
                         <td style={TD}>
                           <span style={{background:REQUEST_TYPES[r.type].bg,color:REQUEST_TYPES[r.type].color,
                             padding:"2px 7px",borderRadius:10,fontSize:10.5,fontWeight:700,whiteSpace:"nowrap"}}>
