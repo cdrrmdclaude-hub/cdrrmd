@@ -391,7 +391,7 @@ function EmployeeDashboard({user,requests,balances,leaveTypes,onNewRequest}){
               <Card key={r.id} style={{padding:"14px 18px"}}>
                 <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:10}}>
                   <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-                    <TypeChip type={r.type}/><span style={{fontSize:13,color:"#555"}}>{r.date}</span>
+                    <TypeChip type={r.type}/><span style={{fontSize:13,color:"#555"}}>{dateRangeText(r)}</span>
                     <span style={{fontSize:13,fontWeight:700,color:"#333"}}>{reqDurationText(r,leaveTypes)}</span>
                   </div>
                   <Badge status={r.status}/>
