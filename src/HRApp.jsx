@@ -122,6 +122,10 @@ function fmtDate(d){
   const [y,m,day]=d.split("-");
   return `${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m-1]} ${+day}, ${y}`;
 }
+function dateRangeText(r){
+  if(r.endDate && r.endDate!==r.date) return `${fmtDate(r.date)} – ${fmtDate(r.endDate)}`;
+  return fmtDate(r.date);
+}
 function nowStamp(){
   const n=new Date();
   return n.toLocaleDateString("en-PH",{year:"numeric",month:"long",day:"numeric"})+
