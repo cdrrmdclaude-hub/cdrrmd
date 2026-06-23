@@ -411,6 +411,7 @@ function EmployeeDashboard({user,requests,balances,leaveTypes,onNewRequest}){
 function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
   const [type,setType]=useState("overtime");
   const [date,setDate]=useState(today());
+  const [endDate,setEndDate]=useState(today());
   const [startTime,setStartTime]=useState("");
   const [endTime,setEndTime]=useState("");
   const [leaveTypeId,setLeaveTypeId]=useState(leaveTypes[0]?.id || "");
