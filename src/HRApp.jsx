@@ -853,6 +853,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       "Overtime Credits (h)": sumOf("Overtime Credits (h)"),
       "Duty on Day-Off Credits (h)": sumOf("Duty on Day-Off Credits (h)"),
       "Total OT/Duty Credits (h)": sumOf("Total OT/Duty Credits (h)"),
+      "Remaining OT/Duty Credits Left to Use (h)": sumOf("Remaining OT/Duty Credits Left to Use (h)"),
       "Offset Used (h)": sumOf("Offset Used (h)"),
     };
     (leaveTypes||[]).forEach(lt=>{ totalRow[`${lt.name} (days)`] = sumOf(`${lt.name} (days)`); });
