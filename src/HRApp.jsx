@@ -95,15 +95,6 @@ const DEPARTMENTS = [
   "Rescue",
   "IT",
 ];
-  "Admin",
-  "Operations",
-  "DRRM Operations",
-  "Rescue and Response",
-  "Logistics",
-  "Training",
-  "Rescue",
-  "IT",
-];
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 function genId(p){ return `${p}${Date.now()}${Math.floor(Math.random()*100)}`; }
