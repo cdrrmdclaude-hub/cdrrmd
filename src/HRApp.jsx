@@ -1340,13 +1340,12 @@ function AccountSettings({user, onUpdateProfile, onChangePassword, onBack}){
     setTimeout(()=>setNameSaved(false), 2500);
   }
 
-  function savePassword(){
-    if(!curPw||!newPw||!confirmPw){ setPwErr("Please fill in all password fields."); return; }
-    if(curPw!==user.password){ setPwErr("Current password is incorrect."); return; }
+  async function savePassword(){
+    if(!newPw||!confirmPw){ setPwErr("Please fill in both password fields."); return; }
     if(newPw.length<6){ setPwErr("New password must be at least 6 characters."); return; }
     if(newPw!==confirmPw){ setPwErr("New passwords do not match."); return; }
     setPwErr(""); setPwSaved(false);
-    onChangePassword(newPw);
+    await onChangePassword(newPw);
     setCurPw(""); setNewPw(""); setConfirmPw("");
     setPwSaved(true);
     setTimeout(()=>setPwSaved(false), 2500);
