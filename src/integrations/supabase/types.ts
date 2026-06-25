@@ -14,16 +14,221 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      leave_balances: {
+        Row: {
+          credits_duty_off: number
+          credits_overtime: number
+          leave_balances: Json
+          offset_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          credits_duty_off?: number
+          credits_overtime?: number
+          leave_balances?: Json
+          offset_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          credits_duty_off?: number
+          credits_overtime?: number
+          leave_balances?: Json
+          offset_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leave_types: {
+        Row: {
+          code: string
+          created_at: string
+          default_days: number
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          default_days?: number
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          default_days?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar: string
+          created_at: string
+          department: string
+          email: string
+          full_name: string
+          id: string
+          position: string
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string
+          created_at?: string
+          department?: string
+          email: string
+          full_name?: string
+          id: string
+          position?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string
+          created_at?: string
+          department?: string
+          email?: string
+          full_name?: string
+          id?: string
+          position?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      requests: {
+        Row: {
+          days: number
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          employee_id: string
+          end_date: string
+          end_time: string | null
+          hours: number
+          id: string
+          leave_type_id: string | null
+          reason: string
+          start_date: string
+          start_time: string | null
+          status: string
+          submitted_at: string
+          type: string
+        }
+        Insert: {
+          days?: number
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          employee_id: string
+          end_date: string
+          end_time?: string | null
+          hours?: number
+          id?: string
+          leave_type_id?: string | null
+          reason?: string
+          start_date: string
+          start_time?: string | null
+          status?: string
+          submitted_at?: string
+          type: string
+        }
+        Update: {
+          days?: number
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          employee_id?: string
+          end_date?: string
+          end_time?: string | null
+          hours?: number
+          id?: string
+          leave_type_id?: string | null
+          reason?: string
+          start_date?: string
+          start_time?: string | null
+          status?: string
+          submitted_at?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requests_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      decide_request: {
+        Args: { _approve: boolean; _note?: string; _request_id: string }
+        Returns: {
+          days: number
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          employee_id: string
+          end_date: string
+          end_time: string | null
+          hours: number
+          id: string
+          leave_type_id: string | null
+          reason: string
+          start_date: string
+          start_time: string | null
+          status: string
+          submitted_at: string
+          type: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "employee"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +355,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "employee"],
+    },
   },
 } as const
