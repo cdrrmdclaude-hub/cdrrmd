@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from "xlsx";
 
 // ─── LOGO ─────────────────────────────────────────────────────────────────
