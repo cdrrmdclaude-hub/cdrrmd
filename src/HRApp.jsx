@@ -2005,180 +2005,277 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── ROOT APP (Lovable Cloud backed) ──────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Map DB request type ⇄ legacy UI type
+const TYPE_DB_TO_UI = { overtime:"overtime", duty_off:"dutyDayOff", offset:"offset", leave:"leave" };
+const TYPE_UI_TO_DB = { overtime:"overtime", dutyDayOff:"duty_off", offset:"offset", leave:"leave" };
+
+function emptyBal(){ return { creditsOvertime:0, creditsDutyOff:0, offsetUsed:0, leaveBalances:{} }; }
+
+function avatarFor(name){
+  return (name||"").trim().split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase() || "EM";
+}
+
 export default function App(){
-  const [user,     setUser]     = useState(null);
-  const [view,     setView]     = useState("dashboard");
-  const [employees,setEmployees]= useState(SEED_EMPLOYEES);
-  const [requests, setRequests] = useState(SEED_REQUESTS);
-  const [balances, setBalances] = useState(SEED_BALANCES);
-  const [leaveTypes,setLeaveTypes] = useState(SEED_LEAVE_TYPES);
-  const [toast,    setToast]    = useState(null);
+  const [view,setView]=useState("dashboard");
+  const [authUser,setAuthUser]=useState(null);
+  const [profile,setProfile]=useState(null);
+  const [role,setRole]=useState(null); // "admin" | "employee"
+  const [employees,setEmployees]=useState([]);
+  const [requests,setRequests]=useState([]);
+  const [balancesById,setBalancesById]=useState({});
+  const [leaveTypes,setLeaveTypes]=useState([]);
+  const [leaveTypeCodeToId,setLeaveTypeCodeToId]=useState({});
+  const [loading,setLoading]=useState(true);
+  const [toast,setToast]=useState(null);
 
   function showToast(msg,color="#1DB584"){setToast({msg,color});setTimeout(()=>setToast(null),3000);}
-  function freshLeaveBalances(){
-    const m={}; leaveTypes.forEach(lt=>{ m[lt.id]=lt.defaultDays; }); return m;
-  }
-  function handleLogin(u){setUser(u);setView(u.role==="admin"?"admin":"dashboard");}
-  function handleLogout(){setUser(null);setView("dashboard");}
-  function handleRegister(newEmp){
-    setEmployees(prev=>[...prev,newEmp]);
-    setBalances(prev=>({...prev,[newEmp.id]:{creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:freshLeaveBalances()}}));
-    showToast("Account created — you can now sign in.");
-  }
-  function handleNewRequest(data){
-    setRequests(prev=>[...prev,{id:genId("R"),employeeId:user.id,employeeName:user.name,
-      type:data.type,date:data.date,endDate:data.endDate||data.date,
-      startTime:data.startTime||null, endTime:data.endTime||null,
-      leaveTypeId:data.leaveTypeId||null, days:data.days||null,
-      hours:data.hours,reason:data.reason,
-      status:"pending",submittedAt:today(),reviewedAt:null,reviewNote:""}]);
-    showToast("Request submitted!"); setView("dashboard");
-  }
-  function handleApprove(reqId,note){
-    const req=requests.find(r=>r.id===reqId);
-    setRequests(prev=>prev.map(r=>r.id===reqId?{...r,status:"approved",reviewedAt:today(),reviewNote:note}:r));
-    setBalances(prev=>{
-      const b={...(prev[req.employeeId]||{})};
-      if(req.type==="overtime")   b.creditsOvertime=(b.creditsOvertime||0)+req.hours;
-      if(req.type==="dutyDayOff") b.creditsDutyOff =(b.creditsDutyOff ||0)+req.hours;
-      if(req.type==="offset"){
-        let remaining = req.hours;
-        const ot = b.creditsOvertime||0;
-        const fromOt = Math.min(ot, remaining);
-        b.creditsOvertime = ot - fromOt;
-        remaining -= fromOt;
-        if(remaining>0){
-          const duty = b.creditsDutyOff||0;
-          b.creditsDutyOff = Math.max(0, duty - remaining);
-        }
-        b.offsetUsed = (b.offsetUsed||0)+req.hours;
-      }
-      if(req.type==="leave" && req.leaveTypeId){
-        const lb = {...(b.leaveBalances||{})};
-        lb[req.leaveTypeId] = Math.max(0, (lb[req.leaveTypeId]||0) - (req.days||0));
-        b.leaveBalances = lb;
-      }
-      return{...prev,[req.employeeId]:b};
+
+  // Load session, profile, role
+  useEffect(()=>{
+    let mounted=true;
+    (async()=>{
+      const { data:{ user } } = await supabase.auth.getUser();
+      if(!mounted) return;
+      if(!user){ setLoading(false); return; }
+      setAuthUser(user);
+      const [{ data:prof }, { data:roleRow }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle(),
+      ]);
+      if(!mounted) return;
+      setProfile(prof);
+      setRole(roleRow?.role || "employee");
+      setView(roleRow?.role==="admin" ? "admin" : "dashboard");
+    })();
+    const { data:sub } = supabase.auth.onAuthStateChange((_e, session)=>{
+      if(!session?.user){ window.location.href="/auth"; }
     });
+    return ()=>{ mounted=false; sub.subscription.unsubscribe(); };
+  },[]);
+
+  // Refresh all data
+  async function refreshAll(){
+    if(!authUser) return;
+    const isAdminNow = role==="admin";
+    const [profilesRes, rolesRes, ltRes, balRes, reqRes] = await Promise.all([
+      supabase.from("profiles").select("*"),
+      supabase.from("user_roles").select("user_id,role"),
+      supabase.from("leave_types").select("*").eq("is_active", true).order("name"),
+      supabase.from("leave_balances").select("*"),
+      supabase.from("requests").select("*").order("submitted_at",{ascending:false}),
+    ]);
+    const profiles = profilesRes.data || [];
+    const roles = rolesRes.data || [];
+    const lts = ltRes.data || [];
+    const bals = balRes.data || [];
+    const reqs = reqRes.data || [];
+
+    const roleByUser = Object.fromEntries(roles.map(r=>[r.user_id, r.role]));
+    const emps = profiles.map(p=>({
+      id: p.id,
+      name: p.full_name || p.email,
+      department: p.department || "",
+      position: p.position || "",
+      email: p.email,
+      role: roleByUser[p.id] || "employee",
+      avatar: p.avatar || avatarFor(p.full_name || p.email),
+    }));
+    setEmployees(emps);
+
+    setLeaveTypes(lts.map(lt=>({ id: lt.code, name: lt.name, defaultDays: Number(lt.default_days)||0 })));
+    setLeaveTypeCodeToId(Object.fromEntries(lts.map(lt=>[lt.code, lt.id])));
+
+    const balMap = {};
+    bals.forEach(b=>{
+      balMap[b.user_id] = {
+        creditsOvertime: Number(b.credits_overtime)||0,
+        creditsDutyOff: Number(b.credits_duty_off)||0,
+        offsetUsed: Number(b.offset_used)||0,
+        leaveBalances: b.leave_balances || {},
+      };
+    });
+    setBalancesById(balMap);
+
+    const empNameById = Object.fromEntries(emps.map(e=>[e.id, e.name]));
+    const ltCodeById = Object.fromEntries(lts.map(lt=>[lt.id, lt.code]));
+    setRequests(reqs.map(r=>({
+      id: r.id,
+      employeeId: r.employee_id,
+      employeeName: empNameById[r.employee_id] || "—",
+      type: TYPE_DB_TO_UI[r.type] || r.type,
+      date: r.start_date,
+      endDate: r.end_date || r.start_date,
+      startTime: r.start_time || null,
+      endTime: r.end_time || null,
+      leaveTypeId: r.leave_type_id ? ltCodeById[r.leave_type_id] : null,
+      days: Number(r.days)||0,
+      hours: Number(r.hours)||0,
+      reason: r.reason || "",
+      status: r.status,
+      submittedAt: (r.submitted_at||"").split("T")[0],
+      reviewedAt: r.decided_at ? r.decided_at.split("T")[0] : null,
+      reviewNote: r.decision_note || "",
+    })));
+  }
+
+  useEffect(()=>{
+    if(!authUser){ return; }
+    setLoading(true);
+    refreshAll().finally(()=>setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[authUser, role]);
+
+  if(loading && !profile){
+    return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter','Segoe UI',sans-serif",color:"#666"}}>Loading…</div>;
+  }
+  if(!authUser){
+    if(typeof window!=="undefined") window.location.href="/auth";
+    return null;
+  }
+
+  const user = {
+    id: authUser.id,
+    name: profile?.full_name || authUser.email,
+    email: authUser.email,
+    department: profile?.department || "",
+    position: profile?.position || "",
+    role: role || "employee",
+    avatar: profile?.avatar || avatarFor(profile?.full_name || authUser.email),
+  };
+  const isAdmin = user.role === "admin";
+
+  // ─── Handlers ───────────────────────────────────────────────────────────────
+  async function handleLogout(){
+    await supabase.auth.signOut();
+    window.location.href="/auth";
+  }
+
+  async function handleNewRequest(data){
+    const ltUuid = data.leaveTypeId ? leaveTypeCodeToId[data.leaveTypeId] : null;
+    const { error } = await supabase.from("requests").insert({
+      employee_id: user.id,
+      type: TYPE_UI_TO_DB[data.type] || data.type,
+      leave_type_id: ltUuid,
+      start_date: data.date,
+      end_date: data.endDate || data.date,
+      start_time: data.startTime || null,
+      end_time: data.endTime || null,
+      hours: Number(data.hours)||0,
+      days: Number(data.days)||0,
+      reason: data.reason || "",
+      status: "pending",
+    });
+    if(error){ showToast(error.message,"#A30E26"); return; }
+    showToast("Request submitted!");
+    setView("dashboard");
+    refreshAll();
+  }
+
+  async function handleApprove(reqId, note){
+    const { error } = await supabase.rpc("decide_request", { _request_id: reqId, _approve: true, _note: note || null });
+    if(error){ showToast(error.message,"#A30E26"); return; }
     showToast("Request approved.");
+    refreshAll();
   }
-  function handleReject(reqId,note){
-    setRequests(prev=>prev.map(r=>r.id===reqId?{...r,status:"rejected",reviewedAt:today(),reviewNote:note}:r));
+  async function handleReject(reqId, note){
+    const { error } = await supabase.rpc("decide_request", { _request_id: reqId, _approve: false, _note: note || null });
+    if(error){ showToast(error.message,"#A30E26"); return; }
     showToast("Request rejected.","#C8102E");
+    refreshAll();
   }
-  function handleAddLeaveType(name, defaultDays){
+
+  async function handleAddLeaveType(name, defaultDays){
     const trimmed=(name||"").trim();
     if(!trimmed){ showToast("Leave type name required.","#A30E26"); return; }
-    if(leaveTypes.some(l=>l.name.toLowerCase()===trimmed.toLowerCase())){
-      showToast("That leave type already exists.","#A30E26"); return;
-    }
-    const id="LT_"+Date.now();
-    const days=Math.max(0, parseFloat(defaultDays)||0);
-    setLeaveTypes(prev=>[...prev,{id,name:trimmed,defaultDays:days}]);
-    // grant new type's default allowance to all existing employees who don't have it
-    setBalances(prev=>{
-      const next={...prev};
-      Object.keys(next).forEach(empId=>{
-        const b={...next[empId]};
-        const lb={...(b.leaveBalances||{})};
-        if(lb[id]==null) lb[id]=days;
-        b.leaveBalances=lb;
-        next[empId]=b;
-      });
-      return next;
-    });
+    const code = "LT_" + trimmed.toUpperCase().replace(/[^A-Z0-9]+/g,"_").slice(0,32);
+    const { error } = await supabase.from("leave_types").insert({ code, name: trimmed, default_days: Math.max(0, parseFloat(defaultDays)||0) });
+    if(error){ showToast(error.message,"#A30E26"); return; }
     showToast(`Leave type "${trimmed}" added.`);
+    refreshAll();
   }
-  function handleUpdateLeaveType(id, changes){
-    setLeaveTypes(prev=>prev.map(l=>l.id===id?{...l,...changes}:l));
+  async function handleUpdateLeaveType(id, changes){
+    const uuid = leaveTypeCodeToId[id];
+    if(!uuid){ return; }
+    const patch = {};
+    if(changes.name!=null) patch.name = changes.name;
+    if(changes.defaultDays!=null) patch.default_days = Math.max(0, parseFloat(changes.defaultDays)||0);
+    const { error } = await supabase.from("leave_types").update(patch).eq("id", uuid);
+    if(error){ showToast(error.message,"#A30E26"); return; }
     showToast("Leave type updated.");
+    refreshAll();
   }
-  function handleDeleteLeaveType(id){
-    setLeaveTypes(prev=>prev.filter(l=>l.id!==id));
-    setBalances(prev=>{
-      const next={...prev};
-      Object.keys(next).forEach(empId=>{
-        const b={...next[empId]};
-        const lb={...(b.leaveBalances||{})};
-        delete lb[id];
-        b.leaveBalances=lb;
-        next[empId]=b;
-      });
-      return next;
-    });
+  async function handleDeleteLeaveType(id){
+    const uuid = leaveTypeCodeToId[id];
+    if(!uuid){ return; }
+    const { error } = await supabase.from("leave_types").update({ is_active:false }).eq("id", uuid);
+    if(error){ showToast(error.message,"#A30E26"); return; }
     showToast("Leave type removed.","#C8102E");
+    refreshAll();
   }
-  function handleUpdateEmployeeLeave(empId, leaveTypeId, days){
-    setBalances(prev=>{
-      const b={...(prev[empId]||{})};
-      const lb={...(b.leaveBalances||{})};
-      lb[leaveTypeId]=Math.max(0, parseFloat(days)||0);
-      b.leaveBalances=lb;
-      return{...prev,[empId]:b};
-    });
+  async function handleUpdateEmployeeLeave(empId, leaveTypeCode, days){
+    const cur = balancesById[empId]?.leaveBalances || {};
+    const next = { ...cur, [leaveTypeCode]: Math.max(0, parseFloat(days)||0) };
+    const { error } = await supabase.from("leave_balances").update({ leave_balances: next }).eq("user_id", empId);
+    if(error){ showToast(error.message,"#A30E26"); return; }
     showToast("Leave allowance updated.");
+    refreshAll();
   }
-  function handleUpdateProfile(changes){
-    setUser(prev=>({...prev,...changes}));
-    setEmployees(prev=>prev.map(e=>e.id===user.id?{...e,...changes}:e));
-    setRequests(prev=>prev.map(r=>r.employeeId===user.id&&changes.name?{...r,employeeName:changes.name}:r));
+  async function handleUpdateProfile(changes){
+    const patch={};
+    if(changes.name!=null) patch.full_name = changes.name;
+    if(changes.department!=null) patch.department = changes.department;
+    if(changes.position!=null) patch.position = changes.position;
+    const { error } = await supabase.from("profiles").update(patch).eq("id", user.id);
+    if(error){ showToast(error.message,"#A30E26"); return; }
     showToast("Profile updated.");
+    const { data:prof } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+    setProfile(prof);
+    refreshAll();
   }
-  function handleChangePassword(newPassword){
-    setUser(prev=>({...prev,password:newPassword}));
-    setEmployees(prev=>prev.map(e=>e.id===user.id?{...e,password:newPassword}:e));
+  async function handleChangePassword(newPassword){
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if(error){ showToast(error.message,"#A30E26"); return; }
     showToast("Password changed.");
   }
-  function handleAdminCreateAccount(newAcc){
-    setEmployees(prev=>[...prev,newAcc]);
-    if(newAcc.role==="employee"){
-      setBalances(prev=>({...prev,[newAcc.id]:{creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:freshLeaveBalances()}}));
-    }
-    showToast(`Account created for ${newAcc.name}.`);
-  }
-  function handleAdminBatchCreateAccounts(newAccs){
-    if(newAccs.length===0) return;
-    setEmployees(prev=>[...prev,...newAccs]);
-    setBalances(prev=>{
-      const next={...prev};
-      newAccs.forEach(acc=>{
-        if(acc.role==="employee") next[acc.id]={creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:freshLeaveBalances()};
-      });
-      return next;
-    });
-    showToast(`${newAccs.length} account${newAccs.length!==1?"s":""} imported successfully.`);
-  }
-  function handleAdminSaveDetails(empId,changes){
-    setEmployees(prev=>prev.map(e=>e.id===empId?{...e,...changes}:e));
-    if(changes.name){
-      setRequests(prev=>prev.map(r=>r.employeeId===empId?{...r,employeeName:changes.name}:r));
-      if(user.id===empId) setUser(prev=>({...prev,...changes}));
-    }
+  async function handleAdminSaveDetails(empId, changes){
+    const patch={};
+    if(changes.name!=null) patch.full_name = changes.name;
+    if(changes.department!=null) patch.department = changes.department;
+    if(changes.position!=null) patch.position = changes.position;
+    if(changes.email!=null) patch.email = changes.email;
+    const { error } = await supabase.from("profiles").update(patch).eq("id", empId);
+    if(error){ showToast(error.message,"#A30E26"); return; }
     showToast("Account details updated.");
+    refreshAll();
   }
-  function handleAdminResetPassword(empId,newPassword){
-    setEmployees(prev=>prev.map(e=>e.id===empId?{...e,password:newPassword}:e));
-    if(user.id===empId) setUser(prev=>({...prev,password:newPassword}));
-    showToast("Password reset.");
+  function handleAdminCreateAccount(){
+    showToast("Ask the employee to self-register at /auth.","#1E3A6E");
   }
-  function handleAdminDeleteAccount(empId){
+  function handleAdminBatchCreateAccounts(){
+    showToast("Bulk import requires the admin API — coming soon.","#1E3A6E");
+  }
+  function handleAdminResetPassword(){
+    showToast("Password resets must be triggered by the user from the sign-in page.","#1E3A6E");
+  }
+  async function handleAdminDeleteAccount(empId){
     if(empId===user.id){ showToast("You cannot delete your own account.","#A30E26"); return; }
-    setEmployees(prev=>prev.filter(e=>e.id!==empId));
-    setBalances(prev=>{ const b={...prev}; delete b[empId]; return b; });
-    showToast("Account deleted.","#A30E26");
+    const { error } = await supabase.from("profiles").delete().eq("id", empId);
+    if(error){ showToast(error.message,"#A30E26"); return; }
+    showToast("Account removed from app. (Auth user retained.)","#A30E26");
+    refreshAll();
   }
 
-  if(!user) return <LoginScreen onLogin={handleLogin} accounts={employees} onRegister={handleRegister}/>;
-
-  const isAdmin=user.role==="admin";
-  const navItems=isAdmin
-    ?[{id:"admin",label:"Overview"},{id:"timesheet",label:"Timesheet Export"},{id:"accounts",label:"Manage Accounts"}]
-    :[{id:"dashboard",label:"Dashboard"},{id:"new-request",label:"+ Request"}];
+  const navItems = isAdmin
+    ? [{id:"admin",label:"Overview"},{id:"timesheet",label:"Timesheet Export"},{id:"accounts",label:"Manage Accounts"}]
+    : [{id:"dashboard",label:"Dashboard"},{id:"new-request",label:"+ Request"}];
 
   return(
     <div style={{minHeight:"100vh",background:"#F7F8FA",fontFamily:"'Inter','Segoe UI',sans-serif"}}>
       <style>{PRINT_CSS}</style>
-      {/* Topbar */}
       <div style={{background:"#fff",borderBottom:"1px solid #E8EBF0",position:"sticky",top:0,zIndex:100}}>
         <div style={{maxWidth:1100,margin:"0 auto",padding:"0 24px",
           display:"flex",alignItems:"center",justifyContent:"space-between",height:58}}>
@@ -2211,15 +2308,14 @@ export default function App(){
           </div>
         </div>
       </div>
-      {/* Content */}
       <div style={{maxWidth:1100,margin:"0 auto",padding:"32px 24px"}}>
-        {view==="dashboard"   && <EmployeeDashboard user={user} requests={requests} balances={balances} leaveTypes={leaveTypes} onNewRequest={()=>setView("new-request")}/>}
-        {view==="new-request" && <NewRequestForm user={user} balances={balances} leaveTypes={leaveTypes} onSubmit={handleNewRequest} onCancel={()=>setView("dashboard")}/>}
-        {view==="admin"       && <AdminPanel requests={requests} employees={employees} balances={balances} leaveTypes={leaveTypes}
+        {view==="dashboard"   && <EmployeeDashboard user={user} requests={requests} balances={balancesById} leaveTypes={leaveTypes} onNewRequest={()=>setView("new-request")}/>}
+        {view==="new-request" && <NewRequestForm user={user} balances={balancesById} leaveTypes={leaveTypes} onSubmit={handleNewRequest} onCancel={()=>setView("dashboard")}/>}
+        {view==="admin"       && <AdminPanel requests={requests} employees={employees} balances={balancesById} leaveTypes={leaveTypes}
             onApprove={handleApprove} onReject={handleReject} onShowTimesheet={()=>setView("timesheet")}/>}
-        {view==="timesheet"   && <TimesheetExport employees={employees} requests={requests} balances={balances} leaveTypes={leaveTypes}/>}
+        {view==="timesheet"   && <TimesheetExport employees={employees} requests={requests} balances={balancesById} leaveTypes={leaveTypes}/>}
         {view==="accounts"    && <ManageAccounts employees={employees} currentUserId={user.id}
-            balances={balances} leaveTypes={leaveTypes}
+            balances={balancesById} leaveTypes={leaveTypes}
             onCreate={handleAdminCreateAccount} onImportBatch={handleAdminBatchCreateAccounts}
             onSaveDetails={handleAdminSaveDetails}
             onResetPassword={handleAdminResetPassword} onDelete={handleAdminDeleteAccount}
@@ -2237,3 +2333,4 @@ export default function App(){
     </div>
   );
 }
+
