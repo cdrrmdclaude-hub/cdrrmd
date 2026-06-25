@@ -23,37 +23,8 @@ const PRINT_CSS = `
   }
 `;
 
-// ─── SEED DATA ────────────────────────────────────────────────────────────────
-const SEED_EMPLOYEES = [
-  { id:"E001", name:"Maria Santos", department:"Operations",           position:"Senior Associate", email:"m.santos@company.com", password:"pass123", role:"employee", avatar:"MS" },
-  { id:"E002", name:"Juan Reyes",   department:"Logistics",            position:"Analyst",          email:"j.reyes@company.com",  password:"pass123", role:"employee", avatar:"JR" },
-  { id:"E003", name:"Ana Cruz",     department:"Rescue and Response",  position:"Coordinator",      email:"a.cruz@company.com",   password:"pass123", role:"employee", avatar:"AC" },
-  { id:"A001", name:"Admin User",   department:"Admin",                position:"HR Manager",       email:"admin@cdrrmd.com",     password:"admin123",role:"admin",   avatar:"AU" },
-];
-// Leave types: admin can add/remove. defaultDays applies to NEW employees;
-// existing employees keep whatever is in their balances.leaveBalances map.
-const SEED_LEAVE_TYPES = [
-  { id:"LT_SICK",      name:"Sick Leave",      defaultDays:5 },
-  { id:"LT_VACATION",  name:"Vacation Leave",  defaultDays:10 },
-  { id:"LT_EMERGENCY", name:"Emergency Leave", defaultDays:3 },
-];
-const SEED_BALANCES = {
-  E001:{ creditsOvertime:16.5, creditsDutyOff:16, offsetUsed:8.0,  leaveBalances:{ LT_SICK:5, LT_VACATION:8,  LT_EMERGENCY:3 } },
-  E002:{ creditsOvertime:8.0,  creditsDutyOff:8,  offsetUsed:4.0,  leaveBalances:{ LT_SICK:4, LT_VACATION:10, LT_EMERGENCY:3 } },
-  E003:{ creditsOvertime:20.0, creditsDutyOff:24, offsetUsed:16.0, leaveBalances:{ LT_SICK:3, LT_VACATION:6,  LT_EMERGENCY:2 } },
-};
-const SEED_REQUESTS = [
-  { id:"R001", employeeId:"E001", employeeName:"Maria Santos", type:"overtime",   date:"2025-06-10", startTime:"18:00", endTime:"21:00", hours:3.0, reason:"System migration support",       status:"approved", submittedAt:"2025-06-11", reviewedAt:"2025-06-12", reviewNote:"Approved — logged correctly." },
-  { id:"R002", employeeId:"E002", employeeName:"Juan Reyes",   type:"leave",      date:"2025-06-15", leaveTypeId:"LT_SICK",      days:1,   hours:8.0, reason:"Family medical appointment",      status:"approved", submittedAt:"2025-06-12", reviewedAt:"2025-06-13", reviewNote:"" },
-  { id:"R003", employeeId:"E001", employeeName:"Maria Santos", type:"offset",     date:"2025-06-18", startTime:"13:00", endTime:"17:00", hours:4.0, reason:"Using OT credits from last week", status:"pending",  submittedAt:"2025-06-14", reviewedAt:null,         reviewNote:"" },
-  { id:"R004", employeeId:"E003", employeeName:"Ana Cruz",     type:"dutyDayOff", date:"2025-06-22", startTime:"08:00", endTime:"16:00", hours:8.0, reason:"Weekend system audit coverage",   status:"pending",  submittedAt:"2025-06-15", reviewedAt:null,         reviewNote:"" },
-  { id:"R005", employeeId:"E002", employeeName:"Juan Reyes",   type:"overtime",   date:"2025-06-20", startTime:"17:30", endTime:"20:00", hours:2.5, reason:"Quarter-end report preparation",  status:"pending",  submittedAt:"2025-06-16", reviewedAt:null,         reviewNote:"" },
-  { id:"R006", employeeId:"E001", employeeName:"Maria Santos", type:"leave",      date:"2025-06-25", leaveTypeId:"LT_VACATION",  days:2,   hours:16.0,reason:"Vacation",                        status:"rejected", submittedAt:"2025-06-10", reviewedAt:"2025-06-11", reviewNote:"Conflict with project deadline." },
-  { id:"R007", employeeId:"E003", employeeName:"Ana Cruz",     type:"overtime",   date:"2025-06-05", startTime:"08:00", endTime:"14:00", hours:6.0, reason:"Payroll system cutover",          status:"approved", submittedAt:"2025-06-06", reviewedAt:"2025-06-07", reviewNote:"" },
-  { id:"R008", employeeId:"E002", employeeName:"Juan Reyes",   type:"offset",     date:"2025-06-08", startTime:"13:00", endTime:"17:00", hours:4.0, reason:"Using banked OT",                 status:"approved", submittedAt:"2025-06-07", reviewedAt:"2025-06-08", reviewNote:"" },
-  { id:"R009", employeeId:"E003", employeeName:"Ana Cruz",     type:"leave",      date:"2025-05-28", leaveTypeId:"LT_SICK",      days:1,   hours:8.0, reason:"Sick leave",                      status:"approved", submittedAt:"2025-05-27", reviewedAt:"2025-05-28", reviewNote:"" },
-  { id:"R010", employeeId:"E001", employeeName:"Maria Santos", type:"dutyDayOff", date:"2025-05-18", startTime:"08:00", endTime:"16:00", hours:8.0, reason:"Weekend data center work",        status:"approved", submittedAt:"2025-05-19", reviewedAt:"2025-05-20", reviewNote:"Verified with IT." },
-];
+// Seed data removed — all data now loaded from Lovable Cloud (Supabase) with RLS.
+
 
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
