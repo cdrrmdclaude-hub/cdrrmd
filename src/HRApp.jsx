@@ -2257,22 +2257,43 @@ export default function App(){
     showToast("Account details updated.");
     refreshAll();
   }
-  function handleAdminCreateAccount(){
-    showToast("Ask the employee to self-register at /auth.","#1E3A6E");
+  async function handleAdminCreateAccount(payload){
+    try{
+      await adminCreateAccount({ data:{
+        email: payload.email, password: payload.password, name: payload.name,
+        department: payload.department, position: payload.position, role: payload.role,
+      }});
+      showToast("Account created.");
+      refreshAll();
+    }catch(e){ showToast(e?.message||"Failed to create account","#A30E26"); }
   }
-  function handleAdminBatchCreateAccounts(){
-    showToast("Bulk import requires the admin API — coming soon.","#1E3A6E");
+  async function handleAdminBatchCreateAccounts(rows){
+    try{
+      const { results } = await adminBulkCreateAccounts({ data:{ rows: rows.map(r=>({
+        email:r.email, password:r.password, name:r.name,
+        department:r.department, position:r.position, role:r.role,
+      }))}});
+      const ok = results.filter(r=>r.ok).length;
+      const fail = results.length - ok;
+      showToast(`Imported ${ok}${fail?`, ${fail} failed`:""}.`, fail?"#A30E26":"#1A7F56");
+      refreshAll();
+    }catch(e){ showToast(e?.message||"Bulk import failed","#A30E26"); }
   }
-  function handleAdminResetPassword(){
-    showToast("Password resets must be triggered by the user from the sign-in page.","#1E3A6E");
+  async function handleAdminResetPassword(empId, newPassword){
+    try{
+      await adminResetPassword({ data:{ userId: empId, newPassword }});
+      showToast("Password reset.");
+    }catch(e){ showToast(e?.message||"Failed to reset password","#A30E26"); }
   }
   async function handleAdminDeleteAccount(empId){
     if(empId===user.id){ showToast("You cannot delete your own account.","#A30E26"); return; }
-    const { error } = await supabase.from("profiles").delete().eq("id", empId);
-    if(error){ showToast(error.message,"#A30E26"); return; }
-    showToast("Account removed from app. (Auth user retained.)","#A30E26");
-    refreshAll();
+    try{
+      await adminDeleteAccount({ data:{ userId: empId }});
+      showToast("Account permanently deleted.","#A30E26");
+      refreshAll();
+    }catch(e){ showToast(e?.message||"Failed to delete account","#A30E26"); }
   }
+
 
   const navItems = isAdmin
     ? [{id:"admin",label:"Overview"},{id:"timesheet",label:"Timesheet Export"},{id:"accounts",label:"Manage Accounts"}]
