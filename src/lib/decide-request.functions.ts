@@ -16,7 +16,7 @@ export const decideRequest = createServerFn({ method: "POST" })
     const { data: result, error } = await supabaseAdmin.rpc("decide_request", {
       _request_id: data.requestId,
       _approve: data.approve,
-      _note: data.note ?? null,
+      _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return result;
