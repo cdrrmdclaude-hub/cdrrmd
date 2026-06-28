@@ -2181,16 +2181,18 @@ export default function App(){
   }
 
   async function handleApprove(reqId, note){
-    const { error } = await supabase.rpc("decide_request", { _request_id: reqId, _approve: true, _note: note || null });
-    if(error){ showToast(error.message,"#A30E26"); return; }
-    showToast("Request approved.");
-    refreshAll();
+    try{
+      await decideRequest({ data:{ requestId: reqId, approve: true, note: note || null }});
+      showToast("Request approved.");
+      refreshAll();
+    }catch(e){ showToast(e?.message||"Failed to approve","#A30E26"); }
   }
   async function handleReject(reqId, note){
-    const { error } = await supabase.rpc("decide_request", { _request_id: reqId, _approve: false, _note: note || null });
-    if(error){ showToast(error.message,"#A30E26"); return; }
-    showToast("Request rejected.","#C8102E");
-    refreshAll();
+    try{
+      await decideRequest({ data:{ requestId: reqId, approve: false, note: note || null }});
+      showToast("Request rejected.","#C8102E");
+      refreshAll();
+    }catch(e){ showToast(e?.message||"Failed to reject","#A30E26"); }
   }
 
   async function handleAddLeaveType(name, defaultDays){
