@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.decide_request(uuid, boolean, text, uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.decide_request(uuid, boolean, text, uuid) TO service_role;
