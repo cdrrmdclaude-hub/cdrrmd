@@ -70,8 +70,8 @@ function AuthPage() {
       fontFamily: "'Inter','Segoe UI',sans-serif",
     }}>
       <div style={{ width: "100%", maxWidth: 420 }}>
-        <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <img src={logoAsset.url} alt="CDRRMD logo" width={120} height={120} style={{ marginBottom: 12, borderRadius: "50%", objectFit: "contain" }} />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", marginBottom: 28 }}>
+          <img src={logoAsset.url} alt="CDRRMD logo" width={120} height={120} style={{ display: "block", margin: "0 auto 12px", borderRadius: "50%", objectFit: "contain" }} />
           <h1 style={{ margin: 0, fontSize: 25, fontWeight: 800, color: "#1a1a1a" }}>CDRRMD</h1>
           <p style={{ margin: "6px 0 0", color: "#777", fontSize: 14 }}>Time & Leave Management System</p>
         </div>
