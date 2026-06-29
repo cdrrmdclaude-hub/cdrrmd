@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import logoAsset from "@/assets/logo.png.asset.json";
+import logoAsset from "@/assets/logo.jpg.asset.json";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -71,7 +71,7 @@ function AuthPage() {
     }}>
       <div style={{ width: "100%", maxWidth: 420 }}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <img src={logoAsset.url} alt="CDRRMD logo" width={96} height={96} style={{ marginBottom: 12, borderRadius: "50%", objectFit: "contain" }} />
+          <img src={logoAsset.url} alt="CDRRMD logo" width={120} height={120} style={{ marginBottom: 12, borderRadius: "50%", objectFit: "contain" }} />
           <h1 style={{ margin: 0, fontSize: 25, fontWeight: 800, color: "#1a1a1a" }}>CDRRMD</h1>
           <p style={{ margin: "6px 0 0", color: "#777", fontSize: 14 }}>Time & Leave Management System</p>
         </div>
