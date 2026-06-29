@@ -17,7 +17,9 @@ export const decideRequest = createServerFn({ method: "POST" })
       _request_id: data.requestId,
       _approve: data.approve,
       _note: data.note ?? undefined,
-    });
+      _actor_id: context.userId,
+    } as never);
     if (error) throw new Error(error.message);
     return result;
   });
+
