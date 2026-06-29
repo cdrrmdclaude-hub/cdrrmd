@@ -193,7 +193,12 @@ export type Database = {
     }
     Functions: {
       decide_request: {
-        Args: { _approve: boolean; _note?: string; _request_id: string }
+        Args: {
+          _actor_id?: string
+          _approve: boolean
+          _note?: string
+          _request_id: string
+        }
         Returns: {
           days: number
           decided_at: string | null
