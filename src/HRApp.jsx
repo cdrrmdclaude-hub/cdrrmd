@@ -2150,6 +2150,7 @@ export default function App(){
     email: authUser.email,
     department: profile?.department || "",
     position: profile?.position || "",
+    employmentStatus: profile?.employment_status || "Regular",
     role: role || "employee",
     avatar: profile?.avatar || avatarFor(profile?.full_name || authUser.email),
   };
