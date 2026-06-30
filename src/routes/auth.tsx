@@ -107,6 +107,9 @@ function AuthPage() {
                 </Field>
                 <Field label="Position" value={position} onChange={setPosition} placeholder="e.g. Staff" />
               </div>
+              <Field label="Employment Status" as="select" value={empStatus} onChange={setEmpStatus}>
+                {EMPLOYMENT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+              </Field>
             </>
           )}
           <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="you@company.com" />
