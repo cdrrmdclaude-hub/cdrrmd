@@ -13,6 +13,8 @@ const DEPARTMENTS = [
   "Admin","Operations","DRRM Operations","Rescue and Response",
   "Logistics","Training","Rescue","IT",
 ];
+const EMPLOYMENT_STATUSES = ["Regular","Casual","Service Contract","Job Order"] as const;
+
 
 function AuthPage() {
   const navigate = useNavigate();
