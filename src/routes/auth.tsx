@@ -13,6 +13,8 @@ const DEPARTMENTS = [
   "Admin","Operations","DRRM Operations","Rescue and Response",
   "Logistics","Training","Rescue","IT",
 ];
+const EMPLOYMENT_STATUSES = ["Regular","Casual","Service Contract","Job Order"] as const;
+
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -22,6 +24,7 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [dept, setDept] = useState("");
   const [position, setPosition] = useState("");
+  const [empStatus, setEmpStatus] = useState<string>("Regular");
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
@@ -42,7 +45,7 @@ function AuthPage() {
 
   async function signUp() {
     setErr(""); setInfo("");
-    if (!name.trim() || !dept || !position.trim() || !email.trim() || !pw) {
+    if (!name.trim() || !dept || !position.trim() || !empStatus || !email.trim() || !pw) {
       setErr("Please fill in all fields."); return;
     }
     if (pw.length < 6) { setErr("Password must be at least 6 characters."); return; }
@@ -53,7 +56,7 @@ function AuthPage() {
       password: pw,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: { full_name: name.trim(), department: dept, position: position.trim(), avatar: initials || "EM" },
+        data: { full_name: name.trim(), department: dept, position: position.trim(), employment_status: empStatus, avatar: initials || "EM" },
       },
     });
     setBusy(false);
@@ -104,6 +107,9 @@ function AuthPage() {
                 </Field>
                 <Field label="Position" value={position} onChange={setPosition} placeholder="e.g. Staff" />
               </div>
+              <Field label="Employment Status" as="select" value={empStatus} onChange={setEmpStatus}>
+                {EMPLOYMENT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+              </Field>
             </>
           )}
           <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="you@company.com" />

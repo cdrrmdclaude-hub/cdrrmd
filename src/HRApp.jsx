@@ -225,7 +225,7 @@ function EmployeeDashboard({user,requests,balances,leaveTypes,onNewRequest}){
     <div style={{display:"flex",flexDirection:"column",gap:24}}>
       <div>
         <h2 style={{margin:0,fontSize:22,fontWeight:800,color:"#1a1a1a",letterSpacing:"-0.02em"}}>Welcome back, {user.name.split(" ")[0]} 👋</h2>
-        <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>{user.position} · {user.department}</p>
+        <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>{user.position} · {user.department}{user.employmentStatus?` · ${user.employmentStatus}`:""}</p>
       </div>
       <div>
         <SectionLabel>Your Hours Balance</SectionLabel>
@@ -281,6 +281,7 @@ function EmployeeDashboard({user,requests,balances,leaveTypes,onNewRequest}){
 
 // ─── NEW REQUEST ──────────────────────────────────────────────────────────────
 function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
+  const canFileLeave = user.employmentStatus === "Regular" || user.employmentStatus === "Casual";
   const [type,setType]=useState("overtime");
   const [date,setDate]=useState(today());
   const [endDate,setEndDate]=useState(today());
@@ -301,6 +302,7 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
     if(endDate<date){setErr("End date must be on or after start date.");return;}
     if(!reason.trim()){setErr("Provide a reason.");return;}
     if(type==="leave"){
+      if(!canFileLeave){setErr("Only Regular and Casual employees may file leave requests.");return;}
       if(!leaveTypeId){setErr("Select a leave type.");return;}
       const d=parseFloat(days);
       if(!d||d<0.5){setErr("Days must be at least 0.5.");return;}
@@ -329,8 +331,16 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
       <Card>
         <div style={{display:"flex",flexDirection:"column",gap:18}}>
           <Sel label="Request Type" value={type} onChange={e=>setType(e.target.value)}>
-            {Object.entries(REQUEST_TYPES).map(([k,v])=><option key={k} value={k}>{v.icon} {v.label}</option>)}
+            {Object.entries(REQUEST_TYPES)
+              .filter(([k])=>canFileLeave || k!=="leave")
+              .map(([k,v])=><option key={k} value={k}>{v.icon} {v.label}</option>)}
           </Sel>
+          {!canFileLeave && (
+            <div style={{background:"#FEF9EC",color:"#B07D2A",borderRadius:9,padding:"8px 12px",fontSize:12.5,fontWeight:600}}>
+              Leave filing is restricted to Regular and Casual employees. Your status: {user.employmentStatus}.
+            </div>
+          )}
+
 
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
             <Inp label="Start Date" type="date" value={date} onChange={e=>{setDate(e.target.value); if(endDate<e.target.value) setEndDate(e.target.value);}}/>
@@ -2086,6 +2096,7 @@ export default function App(){
       name: p.full_name || p.email,
       department: p.department || "",
       position: p.position || "",
+      employmentStatus: p.employment_status || "Regular",
       email: p.email,
       role: roleByUser[p.id] || "employee",
       avatar: p.avatar || avatarFor(p.full_name || p.email),
@@ -2149,6 +2160,7 @@ export default function App(){
     email: authUser.email,
     department: profile?.department || "",
     position: profile?.position || "",
+    employmentStatus: profile?.employment_status || "Regular",
     role: role || "employee",
     avatar: profile?.avatar || avatarFor(profile?.full_name || authUser.email),
   };
