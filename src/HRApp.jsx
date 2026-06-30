@@ -281,6 +281,7 @@ function EmployeeDashboard({user,requests,balances,leaveTypes,onNewRequest}){
 
 // ─── NEW REQUEST ──────────────────────────────────────────────────────────────
 function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
+  const canFileLeave = user.employmentStatus === "Regular" || user.employmentStatus === "Casual";
   const [type,setType]=useState("overtime");
   const [date,setDate]=useState(today());
   const [endDate,setEndDate]=useState(today());
