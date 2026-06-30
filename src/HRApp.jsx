@@ -225,7 +225,7 @@ function EmployeeDashboard({user,requests,balances,leaveTypes,onNewRequest}){
     <div style={{display:"flex",flexDirection:"column",gap:24}}>
       <div>
         <h2 style={{margin:0,fontSize:22,fontWeight:800,color:"#1a1a1a",letterSpacing:"-0.02em"}}>Welcome back, {user.name.split(" ")[0]} 👋</h2>
-        <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>{user.position} · {user.department}</p>
+        <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>{user.position} · {user.department}{user.employmentStatus?` · ${user.employmentStatus}`:""}</p>
       </div>
       <div>
         <SectionLabel>Your Hours Balance</SectionLabel>
