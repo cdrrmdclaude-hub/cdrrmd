@@ -302,6 +302,7 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
     if(endDate<date){setErr("End date must be on or after start date.");return;}
     if(!reason.trim()){setErr("Provide a reason.");return;}
     if(type==="leave"){
+      if(!canFileLeave){setErr("Only Regular and Casual employees may file leave requests.");return;}
       if(!leaveTypeId){setErr("Select a leave type.");return;}
       const d=parseFloat(days);
       if(!d||d<0.5){setErr("Days must be at least 0.5.");return;}
