@@ -45,7 +45,7 @@ function AuthPage() {
 
   async function signUp() {
     setErr(""); setInfo("");
-    if (!name.trim() || !dept || !position.trim() || !email.trim() || !pw) {
+    if (!name.trim() || !dept || !position.trim() || !empStatus || !email.trim() || !pw) {
       setErr("Please fill in all fields."); return;
     }
     if (pw.length < 6) { setErr("Password must be at least 6 characters."); return; }
@@ -56,7 +56,7 @@ function AuthPage() {
       password: pw,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: { full_name: name.trim(), department: dept, position: position.trim(), avatar: initials || "EM" },
+        data: { full_name: name.trim(), department: dept, position: position.trim(), employment_status: empStatus, avatar: initials || "EM" },
       },
     });
     setBusy(false);
