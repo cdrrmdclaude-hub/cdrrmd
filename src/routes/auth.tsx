@@ -24,6 +24,7 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [dept, setDept] = useState("");
   const [position, setPosition] = useState("");
+  const [empStatus, setEmpStatus] = useState<string>("Regular");
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
