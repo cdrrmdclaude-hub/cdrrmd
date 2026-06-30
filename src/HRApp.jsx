@@ -331,8 +331,16 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
       <Card>
         <div style={{display:"flex",flexDirection:"column",gap:18}}>
           <Sel label="Request Type" value={type} onChange={e=>setType(e.target.value)}>
-            {Object.entries(REQUEST_TYPES).map(([k,v])=><option key={k} value={k}>{v.icon} {v.label}</option>)}
+            {Object.entries(REQUEST_TYPES)
+              .filter(([k])=>canFileLeave || k!=="leave")
+              .map(([k,v])=><option key={k} value={k}>{v.icon} {v.label}</option>)}
           </Sel>
+          {!canFileLeave && (
+            <div style={{background:"#FEF9EC",color:"#B07D2A",borderRadius:9,padding:"8px 12px",fontSize:12.5,fontWeight:600}}>
+              Leave filing is restricted to Regular and Casual employees. Your status: {user.employmentStatus}.
+            </div>
+          )}
+
 
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
             <Inp label="Start Date" type="date" value={date} onChange={e=>{setDate(e.target.value); if(endDate<e.target.value) setEndDate(e.target.value);}}/>
