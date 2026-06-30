@@ -2086,6 +2086,7 @@ export default function App(){
       name: p.full_name || p.email,
       department: p.department || "",
       position: p.position || "",
+      employmentStatus: p.employment_status || "Regular",
       email: p.email,
       role: roleByUser[p.id] || "employee",
       avatar: p.avatar || avatarFor(p.full_name || p.email),
