@@ -1837,9 +1837,15 @@ function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onCl
           {/* Leave Allowances (employees only) */}
           {account.role==="employee" && leaveTypes && leaveTypes.length>0 && (
             <>
-              <div>
-                <SectionLabel>Leave Allowances (days remaining)</SectionLabel>
-                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              <details style={{background:"#FFFDF9",border:"1px solid #F0E2CB",borderRadius:10}}>
+                <summary style={{cursor:"pointer",listStyle:"none",padding:"10px 12px",
+                  display:"flex",justifyContent:"space-between",alignItems:"center",
+                  fontSize:13,fontWeight:700,color:"#B07026",userSelect:"none"}}>
+                  <span>🗓 Leave Allowances ({leaveTypes.length}) — days remaining</span>
+                  <span style={{fontSize:11,color:"#B07026"}}>▼</span>
+                </summary>
+                <div style={{display:"flex",flexDirection:"column",gap:8,
+                  maxHeight:240,overflowY:"auto",padding:"10px 12px",borderTop:"1px solid #F0E2CB"}}>
                   {leaveTypes.map(lt=>{
                     const current = balance?.leaveBalances?.[lt.id] ?? 0;
                     return(
@@ -1861,10 +1867,11 @@ function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onCl
                     );
                   })}
                 </div>
-              </div>
+              </details>
               <div style={{borderTop:"1px solid #E2E5EA"}}/>
             </>
           )}
+
 
 
           {/* Reset password */}
