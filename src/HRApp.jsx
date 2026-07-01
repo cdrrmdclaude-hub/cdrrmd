@@ -1720,9 +1720,12 @@ function AddAccountModal({onClose,onCreate,existingEmails}){
   );
 }
 
-function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onClose,onSave,onResetPassword,onDelete,existingEmails}){
+const EMPLOYMENT_STATUSES = ["Regular","Casual","Job Order","Service Contract"];
+
+function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onClose,onSave,onResetPassword,onDelete,existingEmails,employeesById}){
   const [name,setName]=useState(account.name); const [dept,setDept]=useState(account.department);
   const [pos,setPos]=useState(account.position); const [email,setEmail]=useState(account.email);
+  const [empStatus,setEmpStatus]=useState(account.employmentStatus||"Regular");
   const [err,setErr]=useState("");
 
   const [newPw,setNewPw]=useState(""); const [confirmPw,setConfirmPw]=useState(""); const [pwErr,setPwErr]=useState("");
@@ -1730,13 +1733,28 @@ function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onCl
 
   const [confirmDelete,setConfirmDelete]=useState(false);
 
+  const [auditLog,setAuditLog]=useState([]);
+  useEffect(()=>{
+    let cancelled=false;
+    (async()=>{
+      const { data } = await supabase.from("employment_status_audit")
+        .select("id,old_status,new_status,changed_at,changed_by")
+        .eq("employee_id", account.id)
+        .order("changed_at",{ascending:false})
+        .limit(20);
+      if(!cancelled) setAuditLog(data||[]);
+    })();
+    return ()=>{ cancelled=true; };
+  },[account.id]);
+
   function saveDetails(){
     if(!name.trim()||!dept.trim()||!pos.trim()||!email.trim()){ setErr("Please fill in all fields."); return; }
     if(!/^\S+@\S+\.\S+$/.test(email)){ setErr("Enter a valid email address."); return; }
+    if(!EMPLOYMENT_STATUSES.includes(empStatus)){ setErr("Choose a valid employment status."); return; }
     const emailTaken = existingEmails.some(e=>e.toLowerCase()===email.toLowerCase() && e.toLowerCase()!==account.email.toLowerCase());
     if(emailTaken){ setErr("Another account already uses this email."); return; }
     setErr("");
-    onSave(account.id, { name:name.trim(), department:dept.trim(), position:pos.trim(), email:email.trim() });
+    onSave(account.id, { name:name.trim(), department:dept.trim(), position:pos.trim(), email:email.trim(), employmentStatus:empStatus });
   }
 
   function resetPw(){
@@ -1777,12 +1795,42 @@ function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onCl
                 <Inp label="Position" value={pos} onChange={e=>setPos(e.target.value)}/>
               </div>
               <Inp label="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)}/>
+              <Sel label="Employment Status" value={empStatus} onChange={e=>setEmpStatus(e.target.value)}>
+                {EMPLOYMENT_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
+              </Sel>
+              {(empStatus!=="Regular" && empStatus!=="Casual") && (
+                <p style={{margin:0,fontSize:12,color:"#B07026"}}>Note: Only Regular and Casual employees may file leave requests.</p>
+              )}
               {err&&<p style={{margin:0,color:"#A30E26",fontSize:13}}>{err}</p>}
               <div style={{display:"flex",justifyContent:"flex-end"}}>
                 <Btn size="sm" onClick={saveDetails}>Save Details</Btn>
               </div>
             </div>
           </div>
+
+          <div style={{borderTop:"1px solid #E2E5EA"}}/>
+
+          {/* Employment status audit log */}
+          <div>
+            <SectionLabel>Employment Status History</SectionLabel>
+            {auditLog.length===0 ? (
+              <p style={{margin:0,fontSize:13,color:"#aaa"}}>No changes recorded yet.</p>
+            ) : (
+              <div style={{display:"flex",flexDirection:"column",gap:6,maxHeight:180,overflowY:"auto"}}>
+                {auditLog.map(a=>{
+                  const who = employeesById?.[a.changed_by]?.name || (a.changed_by ? "Admin" : "System");
+                  const when = new Date(a.changed_at).toLocaleString();
+                  return(
+                    <div key={a.id} style={{background:"#F4F5F7",borderRadius:8,padding:"8px 10px",fontSize:12.5,color:"#333"}}>
+                      <div><b>{a.old_status||"(none)"}</b> → <b>{a.new_status}</b></div>
+                      <div style={{fontSize:11,color:"#888",marginTop:2}}>{when} · by {who}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
 
           <div style={{borderTop:"1px solid #E2E5EA"}}/>
 
@@ -1935,6 +1983,7 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
     .slice().sort((a,b)=>a.name.localeCompare(b.name));
 
   const existingEmails = employees.map(e=>e.email);
+  const employeesById = Object.fromEntries(employees.map(e=>[e.id, e]));
 
   return(
     <div style={{display:"flex",flexDirection:"column",gap:24}}>
@@ -1947,7 +1996,7 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
           onImportBatch={(accs)=>onImportBatch(accs)}/>
       )}
       {editing && (
-        <EditAccountModal account={editing} existingEmails={existingEmails.filter(e=>e!==editing.email)}
+        <EditAccountModal account={editing} existingEmails={existingEmails.filter(e=>e!==editing.email)} employeesById={employeesById}
           balance={balances[editing.id]} leaveTypes={leaveTypes}
           onUpdateEmployeeLeave={onUpdateEmployeeLeave}
           onClose={()=>setEditing(null)}
@@ -2267,6 +2316,7 @@ export default function App(){
     if(changes.department!=null) patch.department = changes.department;
     if(changes.position!=null) patch.position = changes.position;
     if(changes.email!=null) patch.email = changes.email;
+    if(changes.employmentStatus!=null) patch.employment_status = changes.employmentStatus;
     const { error } = await supabase.from("profiles").update(patch).eq("id", empId);
     if(error){ showToast(error.message,"#A30E26"); return; }
     showToast("Account details updated.");

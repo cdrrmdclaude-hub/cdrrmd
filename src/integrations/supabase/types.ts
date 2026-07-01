@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      employment_status_audit: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          employee_id: string
+          id: string
+          new_status: string
+          old_status: string | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          employee_id: string
+          id?: string
+          new_status: string
+          old_status?: string | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          employee_id?: string
+          id?: string
+          new_status?: string
+          old_status?: string | null
+        }
+        Relationships: []
+      }
       leave_balances: {
         Row: {
           credits_duty_off: number
