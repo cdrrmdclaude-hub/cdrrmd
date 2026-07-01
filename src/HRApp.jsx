@@ -1768,12 +1768,13 @@ function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onCl
 
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",display:"flex",
-      alignItems:"center",justifyContent:"center",zIndex:1000,padding:24,overflowY:"auto"}}
+      alignItems:"flex-start",justifyContent:"center",zIndex:1000,padding:"16px",overflowY:"auto"}}
       onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:480,
-        boxShadow:"0 20px 60px rgba(0,0,0,0.2)",overflow:"hidden",margin:"24px 0"}}>
+        boxShadow:"0 20px 60px rgba(0,0,0,0.2)",display:"flex",flexDirection:"column",
+        maxHeight:"calc(100vh - 32px)",margin:"0 auto",overflow:"hidden"}}>
         <div style={{background:"linear-gradient(135deg,#1E3A6E,#0F2440)",padding:"18px 24px",
-          display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
           <div>
             <div style={{color:"#fff",fontWeight:800,fontSize:16}}>Manage Account</div>
             <div style={{color:"rgba(255,255,255,0.7)",fontSize:12,marginTop:2}}>{account.name}</div>
@@ -1782,7 +1783,7 @@ function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onCl
             borderRadius:8,color:"#fff",width:30,height:30,cursor:"pointer",fontSize:18}}>×</button>
         </div>
 
-        <div style={{padding:"20px 24px",display:"flex",flexDirection:"column",gap:20}}>
+        <div style={{padding:"20px 24px",display:"flex",flexDirection:"column",gap:20,overflowY:"auto",flex:1,minHeight:0}}>
           {/* Profile details */}
           <div>
             <SectionLabel>Profile Details</SectionLabel>
