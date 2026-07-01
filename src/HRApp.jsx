@@ -1795,12 +1795,42 @@ function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onCl
                 <Inp label="Position" value={pos} onChange={e=>setPos(e.target.value)}/>
               </div>
               <Inp label="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)}/>
+              <Sel label="Employment Status" value={empStatus} onChange={e=>setEmpStatus(e.target.value)}>
+                {EMPLOYMENT_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
+              </Sel>
+              {(empStatus!=="Regular" && empStatus!=="Casual") && (
+                <p style={{margin:0,fontSize:12,color:"#B07026"}}>Note: Only Regular and Casual employees may file leave requests.</p>
+              )}
               {err&&<p style={{margin:0,color:"#A30E26",fontSize:13}}>{err}</p>}
               <div style={{display:"flex",justifyContent:"flex-end"}}>
                 <Btn size="sm" onClick={saveDetails}>Save Details</Btn>
               </div>
             </div>
           </div>
+
+          <div style={{borderTop:"1px solid #E2E5EA"}}/>
+
+          {/* Employment status audit log */}
+          <div>
+            <SectionLabel>Employment Status History</SectionLabel>
+            {auditLog.length===0 ? (
+              <p style={{margin:0,fontSize:13,color:"#aaa"}}>No changes recorded yet.</p>
+            ) : (
+              <div style={{display:"flex",flexDirection:"column",gap:6,maxHeight:180,overflowY:"auto"}}>
+                {auditLog.map(a=>{
+                  const who = employeesById?.[a.changed_by]?.name || (a.changed_by ? "Admin" : "System");
+                  const when = new Date(a.changed_at).toLocaleString();
+                  return(
+                    <div key={a.id} style={{background:"#F4F5F7",borderRadius:8,padding:"8px 10px",fontSize:12.5,color:"#333"}}>
+                      <div><b>{a.old_status||"(none)"}</b> → <b>{a.new_status}</b></div>
+                      <div style={{fontSize:11,color:"#888",marginTop:2}}>{when} · by {who}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
 
           <div style={{borderTop:"1px solid #E2E5EA"}}/>
 
