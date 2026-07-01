@@ -1983,6 +1983,7 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
     .slice().sort((a,b)=>a.name.localeCompare(b.name));
 
   const existingEmails = employees.map(e=>e.email);
+  const employeesById = Object.fromEntries(employees.map(e=>[e.id, e]));
 
   return(
     <div style={{display:"flex",flexDirection:"column",gap:24}}>
