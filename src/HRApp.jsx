@@ -1996,7 +1996,7 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
           onImportBatch={(accs)=>onImportBatch(accs)}/>
       )}
       {editing && (
-        <EditAccountModal account={editing} existingEmails={existingEmails.filter(e=>e!==editing.email)}
+        <EditAccountModal account={editing} existingEmails={existingEmails.filter(e=>e!==editing.email)} employeesById={employeesById}
           balance={balances[editing.id]} leaveTypes={leaveTypes}
           onUpdateEmployeeLeave={onUpdateEmployeeLeave}
           onClose={()=>setEditing(null)}
