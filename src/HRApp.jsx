@@ -2316,6 +2316,7 @@ export default function App(){
     if(changes.department!=null) patch.department = changes.department;
     if(changes.position!=null) patch.position = changes.position;
     if(changes.email!=null) patch.email = changes.email;
+    if(changes.employmentStatus!=null) patch.employment_status = changes.employmentStatus;
     const { error } = await supabase.from("profiles").update(patch).eq("id", empId);
     if(error){ showToast(error.message,"#A30E26"); return; }
     showToast("Account details updated.");
