@@ -661,6 +661,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
   // filters
   const [deptF,   setDeptF]   = useState("");
   const [empF,    setEmpF]    = useState("");
+  const [empStatusF, setEmpStatusF] = useState("");
   const [typeF,   setTypeF]   = useState("");
   const [statusF, setStatusF] = useState("approved");
   const [modeF,   setModeF]   = useState("month");   // "month" | "range"
@@ -672,18 +673,24 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
   const [showPreview, setShowPreview] = useState(false);
   const stamp = nowStamp();
 
-  // employee dropdown narrows to selected department
-  const empOptions = deptF ? empList.filter(e=>e.department===deptF) : empList;
+  // employee dropdown narrows to selected department + employment status
+  const empOptions = empList
+    .filter(e=>!deptF||e.department===deptF)
+    .filter(e=>!empStatusF||(e.employmentStatus||"Regular")===empStatusF);
 
   const filters={
     employee: empF, department: deptF, type: typeF, status: statusF,
+    employmentStatus: empStatusF,
     month:  modeF==="month" ? monthF : "",
     from:   modeF==="range" ? fromF  : "",
     to:     modeF==="range" ? toF    : "",
   };
 
   // derive record count for preview badge
-  const previewEmps=empList.filter(e=>(!empF||e.id===empF)&&(!deptF||e.department===deptF));
+  const previewEmps=empList
+    .filter(e=>(!empF||e.id===empF))
+    .filter(e=>(!deptF||e.department===deptF))
+    .filter(e=>(!empStatusF||(e.employmentStatus||"Regular")===empStatusF));
   let previewCount=0;
   previewEmps.forEach(emp=>{
     let r=requests.filter(x=>x.employeeId===emp.id);
