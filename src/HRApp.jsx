@@ -406,6 +406,7 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
   let emps = employees.filter(e=>e.role==="employee");
   if(filters.department) emps=emps.filter(e=>e.department===filters.department);
   if(filters.employee) emps=emps.filter(e=>e.id===filters.employee);
+  if(filters.employmentStatus) emps=emps.filter(e=>(e.employmentStatus||"Regular")===filters.employmentStatus);
 
   const TH={padding:"7px 9px",fontWeight:700,fontSize:10.5,background:"#F0F1F3",
     borderBottom:"2px solid #D0D3DA",color:"#444",textTransform:"uppercase",letterSpacing:"0.05em",textAlign:"left"};
