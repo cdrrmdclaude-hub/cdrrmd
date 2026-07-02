@@ -905,6 +905,11 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
             <option value="pending">Pending</option>
             <option value="rejected">Rejected</option>
           </Sel>
+          {/* Employment Status */}
+          <Sel label="Employment Status" value={empStatusF} onChange={e=>{setEmpStatusF(e.target.value); setEmpF("");}}>
+            <option value="">All Statuses</option>
+            {EMPLOYMENT_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
+          </Sel>
           {/* Period mode toggle */}
           <div style={{display:"flex",flexDirection:"column",gap:5}}>
             <label style={{fontSize:13,fontWeight:600,color:"#555"}}>Period Mode</label>
