@@ -511,6 +511,9 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
               <div>
                 <div style={{fontWeight:800,fontSize:14.5,color:"#1a1a1a"}}>{emp.name}</div>
                 <div style={{fontSize:11,color:"#777",marginTop:2}}>{emp.position} · {emp.department} · {emp.email}</div>
+                <div style={{fontSize:10.5,color:"#1E3A6E",marginTop:3,fontWeight:700}}>
+                  Employment Status: <span style={{background:"#E8EDF6",padding:"1px 7px",borderRadius:8}}>{emp.employmentStatus||"Regular"}</span>
+                </div>
               </div>
               {/* Balance badges */}
               <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
@@ -527,6 +530,11 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
                     <div style={{fontSize:9,color:"#aaa"}}>{k==="offsetUsed"?"used":"balance"}</div>
                   </div>
                 ))}
+                <div style={{textAlign:"center",background:"#FDF3E7",borderRadius:7,padding:"5px 9px",minWidth:68}}>
+                  <div style={{fontSize:9,color:"#B07026",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",lineHeight:1.2}}>Total Leave</div>
+                  <div style={{fontSize:16,fontWeight:900,color:"#B07026",lineHeight:1.2,marginTop:2}}>{fmt(totalLeaveRemaining(bal))}</div>
+                  <div style={{fontSize:9,color:"#aaa"}}>days</div>
+                </div>
               </div>
             </div>
 
