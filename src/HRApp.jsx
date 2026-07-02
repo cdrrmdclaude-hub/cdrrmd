@@ -237,19 +237,21 @@ function EmployeeDashboard({user,requests,balances,leaveTypes,onNewRequest}){
           ))}
         </div>
       </div>
-      <div>
-        <SectionLabel>Your Leave Balances</SectionLabel>
-        {leaveTypes.length===0?(
-          <Card><p style={{margin:0,color:"#aaa",fontSize:14}}>No leave types configured. Ask your administrator to add some.</p></Card>
-        ):(
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:14}}>
-            {leaveTypes.map(lt=>(
-              <LeaveBalCard key={lt.id} name={lt.name}
-                remaining={leaveRemaining(bal,lt.id)} defaultDays={lt.defaultDays}/>
-            ))}
-          </div>
-        )}
-      </div>
+      {["Regular","Casual"].includes(user.employmentStatus||"Regular") && (
+        <div>
+          <SectionLabel>Your Leave Balances</SectionLabel>
+          {leaveTypes.length===0?(
+            <Card><p style={{margin:0,color:"#aaa",fontSize:14}}>No leave types configured. Ask your administrator to add some.</p></Card>
+          ):(
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:14}}>
+              {leaveTypes.map(lt=>(
+                <LeaveBalCard key={lt.id} name={lt.name}
+                  remaining={leaveRemaining(bal,lt.id)} defaultDays={lt.defaultDays}/>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
         <Btn onClick={onNewRequest}>+ File a Request</Btn>
         {pending>0&&<span style={{display:"flex",alignItems:"center",background:"#FEF9EC",color:"#B07D2A",
