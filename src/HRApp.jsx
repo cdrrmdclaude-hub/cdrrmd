@@ -940,7 +940,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
             </>
           )}
           <div style={{flex:"1 1 180px",display:"flex",alignItems:"flex-end"}}>
-            <Btn variant="ghost" onClick={()=>{setDeptF("");setEmpF("");setTypeF("");setStatusF("approved");
+            <Btn variant="ghost" onClick={()=>{setDeptF("");setEmpF("");setEmpStatusF("");setTypeF("");setStatusF("approved");
               setModeF("month");setMonthF(today().slice(0,7));setFromF("");setToF("");}}>
               Reset Filters
             </Btn>
