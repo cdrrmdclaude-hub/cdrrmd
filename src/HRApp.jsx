@@ -755,7 +755,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       "Total OT/Duty Credits (h)": creditsTotal(balances[emp.id]||{}),
       "Remaining OT/Duty Credits Left to Use (h)": Math.max(0, creditsTotal(balances[emp.id]||{}) - (balances[emp.id]?.offsetUsed||0)),
       "Offset Used (h)": balances[emp.id]?.offsetUsed||0,
-      "Total Leave (days)": totalLeaveRemaining(balances[emp.id]||{}),
+      "Total Leave (days)": ["Regular","Casual"].includes(emp.employmentStatus||"Regular") ? totalLeaveRemaining(balances[emp.id]||{}) : "",
     }));
     // Company-wide totals row
     const sumOf = (key)=>summaryData.reduce((s,row)=>s+(row[key]||0),0);
