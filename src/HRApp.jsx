@@ -441,6 +441,7 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
             <div><b>Prepared by:</b> HR Administration</div>
             <div><b>Employees covered:</b> {emps.length}</div>
             {filters.department&&<div><b>Department:</b> {filters.department}</div>}
+            {filters.employmentStatus&&<div><b>Employment Status:</b> {filters.employmentStatus}</div>}
             {filters.type&&<div><b>Filter — Type:</b> {REQUEST_TYPES[filters.type]?.label}</div>}
             <div style={{marginTop:6,padding:"4px 10px",background:"#FEF9EC",borderRadius:6,
               color:"#B07D2A",fontWeight:700,fontSize:10,display:"inline-block"}}>CONFIDENTIAL</div>
