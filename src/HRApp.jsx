@@ -964,7 +964,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
           <span key={i} style={{background:"#E8EDF6",color:"#1E3A6E",padding:"4px 12px",
             borderRadius:20,fontSize:12,fontWeight:600}}>{pill}</span>
         ))}
-        {![deptF,empF,typeF,statusF].some(Boolean)&&modeF==="month"&&!monthF&&
+        {![deptF,empF,empStatusF,typeF,statusF].some(Boolean)&&modeF==="month"&&!monthF&&
           <span style={{fontSize:12,color:"#ccc"}}>None</span>}
       </div>
 
