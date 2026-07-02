@@ -953,6 +953,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
         <span style={{fontSize:12,color:"#aaa",fontWeight:600}}>Active filters:</span>
         {[
           deptF&&`Dept: ${deptF}`,
+          empStatusF&&`Employment: ${empStatusF}`,
           empF&&`Employee: ${empList.find(e=>e.id===empF)?.name}`,
           typeF&&`Type: ${REQUEST_TYPES[typeF]?.label}`,
           statusF&&`Status: ${statusF.charAt(0).toUpperCase()+statusF.slice(1)}`,
