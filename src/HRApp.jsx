@@ -720,6 +720,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
     let rows = requests.slice();
     if(empF)    rows = rows.filter(r=>r.employeeId===empF);
     if(deptF)   rows = rows.filter(r=>{const e=employees.find(x=>x.id===r.employeeId); return e&&e.department===deptF;});
+    if(empStatusF) rows = rows.filter(r=>{const e=employees.find(x=>x.id===r.employeeId); return e&&(e.employmentStatus||"Regular")===empStatusF;});
     if(typeF)   rows = rows.filter(r=>r.type===typeF);
     if(statusF) rows = rows.filter(r=>r.status===statusF);
     if(modeF==="month" && monthF) rows = rows.filter(r=>r.date.startsWith(monthF));
@@ -735,38 +736,35 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
     const scopedEmps = empList
       .filter(e=>!empF||e.id===empF)
       .filter(e=>!deptF||e.department===deptF)
+      .filter(e=>!empStatusF||(e.employmentStatus||"Regular")===empStatusF)
       .slice().sort((a,b)=>a.name.localeCompare(b.name));
 
     // ── Sheet 1: Balance Summary ──
-    const summaryData = scopedEmps.map(emp=>{
-      const bal = balances[emp.id] || {creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:{}};
-      const row = {
-        "Employee Name": emp.name,
-        "Department": emp.department,
-        "Position": emp.position,
-        "Email": emp.email,
-        "Overtime Credits (h)": bal.creditsOvertime||0,
-        "Duty on Day-Off Credits (h)": bal.creditsDutyOff||0,
-        "Total OT/Duty Credits (h)": creditsTotal(bal),
-        "Remaining OT/Duty Credits Left to Use (h)": Math.max(0, creditsTotal(bal) - (bal.offsetUsed||0)),
-        "Offset Used (h)": bal.offsetUsed||0,
-      };
-      (leaveTypes||[]).forEach(lt=>{ row[`${lt.name} (days)`] = leaveRemaining(bal,lt.id); });
-      return row;
-    });
+    const summaryData = scopedEmps.map(emp=>({
+      "Employee Name": emp.name,
+      "Department": emp.department,
+      "Position": emp.position,
+      "Employment Status": emp.employmentStatus||"Regular",
+      "Email": emp.email,
+      "Overtime Credits (h)": emp && (balances[emp.id]?.creditsOvertime||0),
+      "Duty on Day-Off Credits (h)": balances[emp.id]?.creditsDutyOff||0,
+      "Total OT/Duty Credits (h)": creditsTotal(balances[emp.id]||{}),
+      "Remaining OT/Duty Credits Left to Use (h)": Math.max(0, creditsTotal(balances[emp.id]||{}) - (balances[emp.id]?.offsetUsed||0)),
+      "Offset Used (h)": balances[emp.id]?.offsetUsed||0,
+      "Total Leave (days)": totalLeaveRemaining(balances[emp.id]||{}),
+    }));
     // Company-wide totals row
     const sumOf = (key)=>summaryData.reduce((s,row)=>s+(row[key]||0),0);
-    const totalRow = {
+    summaryData.push({
       "Employee Name": "TOTAL (All Employees)",
-      "Department": "", "Position": "", "Email": "",
+      "Department": "", "Position": "", "Employment Status": "", "Email": "",
       "Overtime Credits (h)": sumOf("Overtime Credits (h)"),
       "Duty on Day-Off Credits (h)": sumOf("Duty on Day-Off Credits (h)"),
       "Total OT/Duty Credits (h)": sumOf("Total OT/Duty Credits (h)"),
       "Remaining OT/Duty Credits Left to Use (h)": sumOf("Remaining OT/Duty Credits Left to Use (h)"),
       "Offset Used (h)": sumOf("Offset Used (h)"),
-    };
-    (leaveTypes||[]).forEach(lt=>{ totalRow[`${lt.name} (days)`] = sumOf(`${lt.name} (days)`); });
-    summaryData.push(totalRow);
+      "Total Leave (days)": sumOf("Total Leave (days)"),
+    });
     const summarySheet = XLSX.utils.json_to_sheet(summaryData);
 
     // ── Sheet 2: Request Log (detail rows, matches filters) ──
@@ -777,6 +775,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       return {
         "Employee Name": r.employeeName,
         "Department": emp?.department || "",
+        "Employment Status": emp?.employmentStatus || "Regular",
         "Type": REQUEST_TYPES[r.type]?.label || r.type,
         "Start Date": r.date,
         "End Date":   r.endDate || r.date,
@@ -805,6 +804,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       return {
         "Employee Name": emp.name,
         "Department": emp.department,
+        "Employment Status": emp.employmentStatus||"Regular",
         "Overtime (h)": t.overtime||0,
         "Offset (h)": t.offset||0,
         "Leave (h)": t.leave||0,
@@ -815,7 +815,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
     const sumOfTotals = (key)=>totalsData.reduce((s,row)=>s+(row[key]||0),0);
     totalsData.push({
       "Employee Name": "TOTAL (All Employees)",
-      "Department": "",
+      "Department": "", "Employment Status": "",
       "Overtime (h)": sumOfTotals("Overtime (h)"),
       "Offset (h)": sumOfTotals("Offset (h)"),
       "Leave (h)": sumOfTotals("Leave (h)"),
@@ -823,7 +823,8 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       "Grand Total (h)": sumOfTotals("Grand Total (h)"),
     });
     const totalsSheet = XLSX.utils.json_to_sheet(totalsData);
-    totalsSheet["!cols"] = [{wch:22},{wch:20},{wch:14},{wch:12},{wch:12},{wch:18},{wch:16}];
+    totalsSheet["!cols"] = [{wch:22},{wch:20},{wch:18},{wch:14},{wch:12},{wch:12},{wch:18},{wch:16}];
+
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, summarySheet, "Balance Summary");
