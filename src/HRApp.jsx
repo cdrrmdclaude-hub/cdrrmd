@@ -1278,7 +1278,7 @@ function AdminPanel({requests,employees,balances,leaveTypes,onApprove,onReject,o
                     </div>
                   ))}
                 </div>
-                {leaveTypes.length>0 && (
+                {leaveTypes.length>0 && ["Regular","Casual"].includes(emp.employmentStatus||"Regular") && (
                   <div style={{marginTop:8,background:"#FDF3E7",borderRadius:8,padding:"7px 9px"}}>
                     <p style={{margin:0,fontSize:10,color:"#E8913A",fontWeight:700,lineHeight:1.2}}>LEAVE BALANCES</p>
                     <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:4}}>
