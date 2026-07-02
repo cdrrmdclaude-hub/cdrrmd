@@ -237,19 +237,21 @@ function EmployeeDashboard({user,requests,balances,leaveTypes,onNewRequest}){
           ))}
         </div>
       </div>
-      <div>
-        <SectionLabel>Your Leave Balances</SectionLabel>
-        {leaveTypes.length===0?(
-          <Card><p style={{margin:0,color:"#aaa",fontSize:14}}>No leave types configured. Ask your administrator to add some.</p></Card>
-        ):(
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:14}}>
-            {leaveTypes.map(lt=>(
-              <LeaveBalCard key={lt.id} name={lt.name}
-                remaining={leaveRemaining(bal,lt.id)} defaultDays={lt.defaultDays}/>
-            ))}
-          </div>
-        )}
-      </div>
+      {["Regular","Casual"].includes(user.employmentStatus||"Regular") && (
+        <div>
+          <SectionLabel>Your Leave Balances</SectionLabel>
+          {leaveTypes.length===0?(
+            <Card><p style={{margin:0,color:"#aaa",fontSize:14}}>No leave types configured. Ask your administrator to add some.</p></Card>
+          ):(
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:14}}>
+              {leaveTypes.map(lt=>(
+                <LeaveBalCard key={lt.id} name={lt.name}
+                  remaining={leaveRemaining(bal,lt.id)} defaultDays={lt.defaultDays}/>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
         <Btn onClick={onNewRequest}>+ File a Request</Btn>
         {pending>0&&<span style={{display:"flex",alignItems:"center",background:"#FEF9EC",color:"#B07D2A",
@@ -530,11 +532,13 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
                     <div style={{fontSize:9,color:"#aaa"}}>{k==="offsetUsed"?"used":"balance"}</div>
                   </div>
                 ))}
-                <div style={{textAlign:"center",background:"#FDF3E7",borderRadius:7,padding:"5px 9px",minWidth:68}}>
-                  <div style={{fontSize:9,color:"#B07026",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",lineHeight:1.2}}>Total Leave</div>
-                  <div style={{fontSize:16,fontWeight:900,color:"#B07026",lineHeight:1.2,marginTop:2}}>{fmt(totalLeaveRemaining(bal))}</div>
-                  <div style={{fontSize:9,color:"#aaa"}}>days</div>
-                </div>
+                {["Regular","Casual"].includes(emp.employmentStatus||"Regular") && (
+                  <div style={{textAlign:"center",background:"#FDF3E7",borderRadius:7,padding:"5px 9px",minWidth:68}}>
+                    <div style={{fontSize:9,color:"#B07026",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",lineHeight:1.2}}>Total Leave</div>
+                    <div style={{fontSize:16,fontWeight:900,color:"#B07026",lineHeight:1.2,marginTop:2}}>{fmt(totalLeaveRemaining(bal))}</div>
+                    <div style={{fontSize:9,color:"#aaa"}}>days</div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -751,7 +755,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       "Total OT/Duty Credits (h)": creditsTotal(balances[emp.id]||{}),
       "Remaining OT/Duty Credits Left to Use (h)": Math.max(0, creditsTotal(balances[emp.id]||{}) - (balances[emp.id]?.offsetUsed||0)),
       "Offset Used (h)": balances[emp.id]?.offsetUsed||0,
-      "Total Leave (days)": totalLeaveRemaining(balances[emp.id]||{}),
+      "Total Leave (days)": ["Regular","Casual"].includes(emp.employmentStatus||"Regular") ? totalLeaveRemaining(balances[emp.id]||{}) : "",
     }));
     // Company-wide totals row
     const sumOf = (key)=>summaryData.reduce((s,row)=>s+(row[key]||0),0);
@@ -1276,7 +1280,7 @@ function AdminPanel({requests,employees,balances,leaveTypes,onApprove,onReject,o
                     </div>
                   ))}
                 </div>
-                {leaveTypes.length>0 && (
+                {leaveTypes.length>0 && ["Regular","Casual"].includes(emp.employmentStatus||"Regular") && (
                   <div style={{marginTop:8,background:"#FDF3E7",borderRadius:8,padding:"7px 9px"}}>
                     <p style={{margin:0,fontSize:10,color:"#E8913A",fontWeight:700,lineHeight:1.2}}>LEAVE BALANCES</p>
                     <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:4}}>
