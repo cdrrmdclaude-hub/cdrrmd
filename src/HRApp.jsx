@@ -406,6 +406,7 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
   let emps = employees.filter(e=>e.role==="employee");
   if(filters.department) emps=emps.filter(e=>e.department===filters.department);
   if(filters.employee) emps=emps.filter(e=>e.id===filters.employee);
+  if(filters.employmentStatus) emps=emps.filter(e=>(e.employmentStatus||"Regular")===filters.employmentStatus);
 
   const TH={padding:"7px 9px",fontWeight:700,fontSize:10.5,background:"#F0F1F3",
     borderBottom:"2px solid #D0D3DA",color:"#444",textTransform:"uppercase",letterSpacing:"0.05em",textAlign:"left"};
@@ -440,6 +441,7 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
             <div><b>Prepared by:</b> HR Administration</div>
             <div><b>Employees covered:</b> {emps.length}</div>
             {filters.department&&<div><b>Department:</b> {filters.department}</div>}
+            {filters.employmentStatus&&<div><b>Employment Status:</b> {filters.employmentStatus}</div>}
             {filters.type&&<div><b>Filter — Type:</b> {REQUEST_TYPES[filters.type]?.label}</div>}
             <div style={{marginTop:6,padding:"4px 10px",background:"#FEF9EC",borderRadius:6,
               color:"#B07D2A",fontWeight:700,fontSize:10,display:"inline-block"}}>CONFIDENTIAL</div>
@@ -509,6 +511,9 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
               <div>
                 <div style={{fontWeight:800,fontSize:14.5,color:"#1a1a1a"}}>{emp.name}</div>
                 <div style={{fontSize:11,color:"#777",marginTop:2}}>{emp.position} · {emp.department} · {emp.email}</div>
+                <div style={{fontSize:10.5,color:"#1E3A6E",marginTop:3,fontWeight:700}}>
+                  Employment Status: <span style={{background:"#E8EDF6",padding:"1px 7px",borderRadius:8}}>{emp.employmentStatus||"Regular"}</span>
+                </div>
               </div>
               {/* Balance badges */}
               <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
@@ -525,6 +530,11 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
                     <div style={{fontSize:9,color:"#aaa"}}>{k==="offsetUsed"?"used":"balance"}</div>
                   </div>
                 ))}
+                <div style={{textAlign:"center",background:"#FDF3E7",borderRadius:7,padding:"5px 9px",minWidth:68}}>
+                  <div style={{fontSize:9,color:"#B07026",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",lineHeight:1.2}}>Total Leave</div>
+                  <div style={{fontSize:16,fontWeight:900,color:"#B07026",lineHeight:1.2,marginTop:2}}>{fmt(totalLeaveRemaining(bal))}</div>
+                  <div style={{fontSize:9,color:"#aaa"}}>days</div>
+                </div>
               </div>
             </div>
 
@@ -651,6 +661,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
   // filters
   const [deptF,   setDeptF]   = useState("");
   const [empF,    setEmpF]    = useState("");
+  const [empStatusF, setEmpStatusF] = useState("");
   const [typeF,   setTypeF]   = useState("");
   const [statusF, setStatusF] = useState("approved");
   const [modeF,   setModeF]   = useState("month");   // "month" | "range"
@@ -662,18 +673,24 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
   const [showPreview, setShowPreview] = useState(false);
   const stamp = nowStamp();
 
-  // employee dropdown narrows to selected department
-  const empOptions = deptF ? empList.filter(e=>e.department===deptF) : empList;
+  // employee dropdown narrows to selected department + employment status
+  const empOptions = empList
+    .filter(e=>!deptF||e.department===deptF)
+    .filter(e=>!empStatusF||(e.employmentStatus||"Regular")===empStatusF);
 
   const filters={
     employee: empF, department: deptF, type: typeF, status: statusF,
+    employmentStatus: empStatusF,
     month:  modeF==="month" ? monthF : "",
     from:   modeF==="range" ? fromF  : "",
     to:     modeF==="range" ? toF    : "",
   };
 
   // derive record count for preview badge
-  const previewEmps=empList.filter(e=>(!empF||e.id===empF)&&(!deptF||e.department===deptF));
+  const previewEmps=empList
+    .filter(e=>(!empF||e.id===empF))
+    .filter(e=>(!deptF||e.department===deptF))
+    .filter(e=>(!empStatusF||(e.employmentStatus||"Regular")===empStatusF));
   let previewCount=0;
   previewEmps.forEach(emp=>{
     let r=requests.filter(x=>x.employeeId===emp.id);
@@ -703,6 +720,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
     let rows = requests.slice();
     if(empF)    rows = rows.filter(r=>r.employeeId===empF);
     if(deptF)   rows = rows.filter(r=>{const e=employees.find(x=>x.id===r.employeeId); return e&&e.department===deptF;});
+    if(empStatusF) rows = rows.filter(r=>{const e=employees.find(x=>x.id===r.employeeId); return e&&(e.employmentStatus||"Regular")===empStatusF;});
     if(typeF)   rows = rows.filter(r=>r.type===typeF);
     if(statusF) rows = rows.filter(r=>r.status===statusF);
     if(modeF==="month" && monthF) rows = rows.filter(r=>r.date.startsWith(monthF));
@@ -718,38 +736,35 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
     const scopedEmps = empList
       .filter(e=>!empF||e.id===empF)
       .filter(e=>!deptF||e.department===deptF)
+      .filter(e=>!empStatusF||(e.employmentStatus||"Regular")===empStatusF)
       .slice().sort((a,b)=>a.name.localeCompare(b.name));
 
     // ── Sheet 1: Balance Summary ──
-    const summaryData = scopedEmps.map(emp=>{
-      const bal = balances[emp.id] || {creditsOvertime:0,creditsDutyOff:0,offsetUsed:0,leaveBalances:{}};
-      const row = {
-        "Employee Name": emp.name,
-        "Department": emp.department,
-        "Position": emp.position,
-        "Email": emp.email,
-        "Overtime Credits (h)": bal.creditsOvertime||0,
-        "Duty on Day-Off Credits (h)": bal.creditsDutyOff||0,
-        "Total OT/Duty Credits (h)": creditsTotal(bal),
-        "Remaining OT/Duty Credits Left to Use (h)": Math.max(0, creditsTotal(bal) - (bal.offsetUsed||0)),
-        "Offset Used (h)": bal.offsetUsed||0,
-      };
-      (leaveTypes||[]).forEach(lt=>{ row[`${lt.name} (days)`] = leaveRemaining(bal,lt.id); });
-      return row;
-    });
+    const summaryData = scopedEmps.map(emp=>({
+      "Employee Name": emp.name,
+      "Department": emp.department,
+      "Position": emp.position,
+      "Employment Status": emp.employmentStatus||"Regular",
+      "Email": emp.email,
+      "Overtime Credits (h)": emp && (balances[emp.id]?.creditsOvertime||0),
+      "Duty on Day-Off Credits (h)": balances[emp.id]?.creditsDutyOff||0,
+      "Total OT/Duty Credits (h)": creditsTotal(balances[emp.id]||{}),
+      "Remaining OT/Duty Credits Left to Use (h)": Math.max(0, creditsTotal(balances[emp.id]||{}) - (balances[emp.id]?.offsetUsed||0)),
+      "Offset Used (h)": balances[emp.id]?.offsetUsed||0,
+      "Total Leave (days)": totalLeaveRemaining(balances[emp.id]||{}),
+    }));
     // Company-wide totals row
     const sumOf = (key)=>summaryData.reduce((s,row)=>s+(row[key]||0),0);
-    const totalRow = {
+    summaryData.push({
       "Employee Name": "TOTAL (All Employees)",
-      "Department": "", "Position": "", "Email": "",
+      "Department": "", "Position": "", "Employment Status": "", "Email": "",
       "Overtime Credits (h)": sumOf("Overtime Credits (h)"),
       "Duty on Day-Off Credits (h)": sumOf("Duty on Day-Off Credits (h)"),
       "Total OT/Duty Credits (h)": sumOf("Total OT/Duty Credits (h)"),
       "Remaining OT/Duty Credits Left to Use (h)": sumOf("Remaining OT/Duty Credits Left to Use (h)"),
       "Offset Used (h)": sumOf("Offset Used (h)"),
-    };
-    (leaveTypes||[]).forEach(lt=>{ totalRow[`${lt.name} (days)`] = sumOf(`${lt.name} (days)`); });
-    summaryData.push(totalRow);
+      "Total Leave (days)": sumOf("Total Leave (days)"),
+    });
     const summarySheet = XLSX.utils.json_to_sheet(summaryData);
 
     // ── Sheet 2: Request Log (detail rows, matches filters) ──
@@ -760,6 +775,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       return {
         "Employee Name": r.employeeName,
         "Department": emp?.department || "",
+        "Employment Status": emp?.employmentStatus || "Regular",
         "Type": REQUEST_TYPES[r.type]?.label || r.type,
         "Start Date": r.date,
         "End Date":   r.endDate || r.date,
@@ -788,6 +804,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       return {
         "Employee Name": emp.name,
         "Department": emp.department,
+        "Employment Status": emp.employmentStatus||"Regular",
         "Overtime (h)": t.overtime||0,
         "Offset (h)": t.offset||0,
         "Leave (h)": t.leave||0,
@@ -798,7 +815,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
     const sumOfTotals = (key)=>totalsData.reduce((s,row)=>s+(row[key]||0),0);
     totalsData.push({
       "Employee Name": "TOTAL (All Employees)",
-      "Department": "",
+      "Department": "", "Employment Status": "",
       "Overtime (h)": sumOfTotals("Overtime (h)"),
       "Offset (h)": sumOfTotals("Offset (h)"),
       "Leave (h)": sumOfTotals("Leave (h)"),
@@ -806,7 +823,8 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       "Grand Total (h)": sumOfTotals("Grand Total (h)"),
     });
     const totalsSheet = XLSX.utils.json_to_sheet(totalsData);
-    totalsSheet["!cols"] = [{wch:22},{wch:20},{wch:14},{wch:12},{wch:12},{wch:18},{wch:16}];
+    totalsSheet["!cols"] = [{wch:22},{wch:20},{wch:18},{wch:14},{wch:12},{wch:12},{wch:18},{wch:16}];
+
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, summarySheet, "Balance Summary");
@@ -887,6 +905,11 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
             <option value="pending">Pending</option>
             <option value="rejected">Rejected</option>
           </Sel>
+          {/* Employment Status */}
+          <Sel label="Employment Status" value={empStatusF} onChange={e=>{setEmpStatusF(e.target.value); setEmpF("");}}>
+            <option value="">All Statuses</option>
+            {EMPLOYMENT_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
+          </Sel>
           {/* Period mode toggle */}
           <div style={{display:"flex",flexDirection:"column",gap:5}}>
             <label style={{fontSize:13,fontWeight:600,color:"#555"}}>Period Mode</label>
@@ -917,7 +940,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
             </>
           )}
           <div style={{flex:"1 1 180px",display:"flex",alignItems:"flex-end"}}>
-            <Btn variant="ghost" onClick={()=>{setDeptF("");setEmpF("");setTypeF("");setStatusF("approved");
+            <Btn variant="ghost" onClick={()=>{setDeptF("");setEmpF("");setEmpStatusF("");setTypeF("");setStatusF("approved");
               setModeF("month");setMonthF(today().slice(0,7));setFromF("");setToF("");}}>
               Reset Filters
             </Btn>
@@ -930,6 +953,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
         <span style={{fontSize:12,color:"#aaa",fontWeight:600}}>Active filters:</span>
         {[
           deptF&&`Dept: ${deptF}`,
+          empStatusF&&`Employment: ${empStatusF}`,
           empF&&`Employee: ${empList.find(e=>e.id===empF)?.name}`,
           typeF&&`Type: ${REQUEST_TYPES[typeF]?.label}`,
           statusF&&`Status: ${statusF.charAt(0).toUpperCase()+statusF.slice(1)}`,
@@ -940,7 +964,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
           <span key={i} style={{background:"#E8EDF6",color:"#1E3A6E",padding:"4px 12px",
             borderRadius:20,fontSize:12,fontWeight:600}}>{pill}</span>
         ))}
-        {![deptF,empF,typeF,statusF].some(Boolean)&&modeF==="month"&&!monthF&&
+        {![deptF,empF,empStatusF,typeF,statusF].some(Boolean)&&modeF==="month"&&!monthF&&
           <span style={{fontSize:12,color:"#ccc"}}>None</span>}
       </div>
 
