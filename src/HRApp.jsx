@@ -2436,7 +2436,9 @@ export default function App(){
           </div>
         </div>
       </div>
-      <div style={{maxWidth:1100,margin:"0 auto",padding:"32px 24px"}}>
+      <main style={{maxWidth:1100,margin:"0 auto",padding:"32px 24px"}}>
+        <h1 style={{position:"absolute",width:1,height:1,padding:0,margin:-1,overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>CDRRMD Time &amp; Leave Management</h1>
+
         {view==="dashboard"   && <EmployeeDashboard user={user} requests={requests} balances={balancesById} leaveTypes={leaveTypes} onNewRequest={()=>setView("new-request")}/>}
         {view==="new-request" && <NewRequestForm user={user} balances={balancesById} leaveTypes={leaveTypes} onSubmit={handleNewRequest} onCancel={()=>setView("dashboard")}/>}
         {view==="admin"       && <AdminPanel requests={requests} employees={employees} balances={balancesById} leaveTypes={leaveTypes}
