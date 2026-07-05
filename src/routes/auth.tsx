@@ -5,7 +5,17 @@ import logoAsset from "@/assets/logo.jpg.asset.json";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Sign in · CDRRMD HR" }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign in · CDRRMD Time & Leave Management" },
+      { name: "description", content: "Sign in or create an account to access the CDRRMD Time & Leave Management portal." },
+      { property: "og:title", content: "Sign in · CDRRMD Time & Leave Management" },
+      { property: "og:description", content: "Sign in or create an account to access the CDRRMD Time & Leave Management portal." },
+      { property: "og:url", content: "https://cdrrmd.lovable.app/auth" },
+    ],
+    links: [{ rel: "canonical", href: "https://cdrrmd.lovable.app/auth" }],
+  }),
+
   component: AuthPage,
 });
 
