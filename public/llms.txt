@@ -1,0 +1,9 @@
+# CDRRMD Time & Leave Management
+
+> Internal employee portal for managing leave, overtime, and duty-off requests for CDRRMD.
+
+This site is a workforce management application that tracks employee timesheets, leave balances, overtime, and duty-off records. It is primarily an authenticated experience for staff and administrators.
+
+## Optional
+
+- [Auth](/auth): Sign-in page for employees and administrators.
