@@ -8,10 +8,15 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "CDRRMD Time & Leave Management" },
-      { name: "description", content: "Employee leave, overtime, and duty-off management." },
+      { title: "Dashboard · CDRRMD Time & Leave Management" },
+      { name: "description", content: "Employee dashboard for filing and tracking leave, overtime, and duty-off requests at CDRRMD." },
+      { property: "og:title", content: "Dashboard · CDRRMD Time & Leave Management" },
+      { property: "og:description", content: "Employee dashboard for filing and tracking leave, overtime, and duty-off requests at CDRRMD." },
+      { property: "og:url", content: "https://cdrrmd.lovable.app/" },
     ],
+    links: [{ rel: "canonical", href: "https://cdrrmd.lovable.app/" }],
   }),
+
   component: IndexPage,
 });
 
