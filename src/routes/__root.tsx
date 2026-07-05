@@ -77,15 +77,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CDRRMD Time & Leave Management" },
-      { name: "description", content: "Internal CDRRMD portal for filing and managing employee leave, overtime, and duty-off requests." },
+      { title: "Dashboard · CDRRMD Time & Leave Management" },
+      { name: "description", content: "Employee dashboard for filing and tracking leave, overtime, and duty-off requests at CDRRMD." },
       { property: "og:site_name", content: "CDRRMD Time & Leave Management" },
-      { property: "og:title", content: "CDRRMD Time & Leave Management" },
-      { property: "og:description", content: "Internal CDRRMD portal for filing and managing employee leave, overtime, and duty-off requests." },
+      { property: "og:title", content: "Dashboard · CDRRMD Time & Leave Management" },
+      { property: "og:description", content: "Employee dashboard for filing and tracking leave, overtime, and duty-off requests at CDRRMD." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "CDRRMD Time & Leave Management" },
-      { name: "twitter:description", content: "Internal CDRRMD portal for filing and managing employee leave, overtime, and duty-off requests." },
+      { name: "twitter:title", content: "Dashboard · CDRRMD Time & Leave Management" },
+      { name: "twitter:description", content: "Employee dashboard for filing and tracking leave, overtime, and duty-off requests at CDRRMD." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f2cfc520-b592-4dd8-b1b3-fd8d37256aa9/id-preview-5b34937e--46b2950b-80db-442b-a9dd-00658249bf6b.lovable.app-1783292021486.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f2cfc520-b592-4dd8-b1b3-fd8d37256aa9/id-preview-5b34937e--46b2950b-80db-442b-a9dd-00658249bf6b.lovable.app-1783292021486.png" },
     ],
 
     links: [
