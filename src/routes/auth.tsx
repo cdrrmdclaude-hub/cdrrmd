@@ -5,7 +5,17 @@ import logoAsset from "@/assets/logo.jpg.asset.json";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Sign in · CDRRMD HR" }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign in · CDRRMD Time & Leave Management" },
+      { name: "description", content: "Sign in or create an account to access the CDRRMD Time & Leave Management portal." },
+      { property: "og:title", content: "Sign in · CDRRMD Time & Leave Management" },
+      { property: "og:description", content: "Sign in or create an account to access the CDRRMD Time & Leave Management portal." },
+      { property: "og:url", content: "https://cdrrmd.lovable.app/auth" },
+    ],
+    links: [{ rel: "canonical", href: "https://cdrrmd.lovable.app/auth" }],
+  }),
+
   component: AuthPage,
 });
 
@@ -75,8 +85,9 @@ function AuthPage() {
       <div style={{ width: "100%", maxWidth: 420 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", marginBottom: 28 }}>
           <img src={logoAsset.url} alt="CDRRMD logo" width={120} height={120} style={{ display: "block", margin: "0 auto 12px", borderRadius: "50%", objectFit: "contain" }} />
-          <h1 style={{ margin: 0, fontSize: 25, fontWeight: 800, color: "#1a1a1a" }}>CDRRMD</h1>
-          <p style={{ margin: "6px 0 0", color: "#777", fontSize: 14 }}>Time & Leave Management System</p>
+          <h1 style={{ margin: 0, fontSize: 25, fontWeight: 800, color: "#1a1a1a" }}>CDRRMD Time &amp; Leave Management</h1>
+          <p style={{ margin: "6px 0 0", color: "#777", fontSize: 14 }}>Employee portal for leave, overtime, and duty-off requests</p>
+
         </div>
 
         <div style={{
