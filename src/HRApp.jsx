@@ -2452,7 +2452,8 @@ export default function App(){
             onAddLeaveType={handleAddLeaveType} onUpdateLeaveType={handleUpdateLeaveType}
             onDeleteLeaveType={handleDeleteLeaveType} onUpdateEmployeeLeave={handleUpdateEmployeeLeave}/>}
         {view==="settings"    && <AccountSettings user={user} onUpdateProfile={handleUpdateProfile} onChangePassword={handleChangePassword} onBack={()=>setView(isAdmin?"admin":"dashboard")}/>}
-      </div>
+      </main>
+
       {toast&&(
         <div style={{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",
           background:toast.color,color:"#fff",padding:"12px 22px",borderRadius:12,
