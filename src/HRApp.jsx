@@ -1137,7 +1137,7 @@ function LogPrintModal({requests,employees,leaveTypes,onClose}){
               <div style={{color:"rgba(255,255,255,0.7)",fontSize:13,marginTop:2}}>Filter and print activity log</div>
             </div>
             <button onClick={onClose} style={{background:"rgba(255,255,255,0.15)",border:"none",
-              borderRadius:8,color:"#fff",width:30,height:30,cursor:"pointer",fontSize:18}}>×</button>
+              borderRadius:8,color:"#fff",width:30,height:30,cursor:"pointer",fontSize:18}} aria-label="Close">×</button>
           </div>
           <div style={{padding:"20px 24px"}}>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
@@ -1235,7 +1235,7 @@ function AdminPanel({requests,employees,balances,leaveTypes,onApprove,onReject,o
               {empSearch&&(
                 <button onClick={()=>setEmpSearch("")} style={{position:"absolute",right:8,top:"50%",
                   transform:"translateY(-50%)",border:"none",background:"transparent",color:"#aaa",
-                  cursor:"pointer",fontSize:14,padding:0,lineHeight:1}}>×</button>
+                  cursor:"pointer",fontSize:14,padding:0,lineHeight:1}} aria-label="Clear search">×</button>
               )}
             </div>
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
@@ -1585,7 +1585,7 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
             <div style={{color:"rgba(255,255,255,0.7)",fontSize:12,marginTop:2}}>Bulk-create employee or admin accounts</div>
           </div>
           <button onClick={onClose} style={{background:"rgba(255,255,255,0.15)",border:"none",
-            borderRadius:8,color:"#fff",width:30,height:30,cursor:"pointer",fontSize:18}}>×</button>
+            borderRadius:8,color:"#fff",width:30,height:30,cursor:"pointer",fontSize:18}} aria-label="Close">×</button>
         </div>
 
         <div style={{padding:"20px 24px",display:"flex",flexDirection:"column",gap:16}}>
@@ -1721,7 +1721,7 @@ function AddAccountModal({onClose,onCreate,existingEmails}){
           display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{color:"#fff",fontWeight:800,fontSize:16}}>+ Add New Account</div>
           <button onClick={onClose} style={{background:"rgba(255,255,255,0.15)",border:"none",
-            borderRadius:8,color:"#fff",width:30,height:30,cursor:"pointer",fontSize:18}}>×</button>
+            borderRadius:8,color:"#fff",width:30,height:30,cursor:"pointer",fontSize:18}} aria-label="Close">×</button>
         </div>
         <div style={{padding:"20px 24px",display:"flex",flexDirection:"column",gap:14}}>
           <Inp label="Full Name" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Pedro Dela Cruz"/>
@@ -1809,7 +1809,7 @@ function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onCl
             <div style={{color:"rgba(255,255,255,0.7)",fontSize:12,marginTop:2}}>{account.name}</div>
           </div>
           <button onClick={onClose} style={{background:"rgba(255,255,255,0.15)",border:"none",
-            borderRadius:8,color:"#fff",width:30,height:30,cursor:"pointer",fontSize:18}}>×</button>
+            borderRadius:8,color:"#fff",width:30,height:30,cursor:"pointer",fontSize:18}} aria-label="Close">×</button>
         </div>
 
         <div style={{padding:"20px 24px",display:"flex",flexDirection:"column",gap:20,overflowY:"auto",flex:1,minHeight:0}}>
