@@ -1521,6 +1521,8 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
           const email = get("email","email address");
           const password = get("password","temporary password","temp password");
           const role = normalizeRole(get("role"));
+          const rawEmp = get("employment status","employmentstatus","status") || "Regular";
+          const employmentStatus = EMPLOYMENT_STATUSES.find(s=>s.toLowerCase()===rawEmp.toLowerCase()) || "";
           const errors=[];
 
           if(!name) errors.push("Missing name");
@@ -1533,12 +1535,14 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
           else if(seenInFile.has(email.toLowerCase())) errors.push("Duplicate email in this file");
           if(!password) errors.push("Missing password");
           else if(password.length<6) errors.push("Password must be at least 6 characters");
+          if(!employmentStatus) errors.push(`Invalid employment status "${rawEmp}" (use ${EMPLOYMENT_STATUSES.join(", ")})`);
 
           if(email && !errors.includes("Email already exists in system") && !errors.includes("Duplicate email in this file")){
             seenInFile.add(email.toLowerCase());
           }
 
-          return { rowNum:idx+2, name, department, position, email, password, role, errors };
+          return { rowNum:idx+2, name, department, position, email, password, role, employmentStatus, errors };
+
         });
         setParsedRows(out);
       }catch(err){
