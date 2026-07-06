@@ -135,11 +135,6 @@ function AuthPage() {
           }}>
             {busy ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}
           </button>
-          {mode === "register" && (
-            <p style={{ margin: 0, fontSize: 12, color: "#aaa", textAlign: "center" }}>
-              The first account becomes the administrator. Subsequent accounts are employees.
-            </p>
-          )}
         </div>
       </div>
     </div>
