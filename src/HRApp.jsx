@@ -1453,12 +1453,13 @@ function AccountSettings({user, onUpdateProfile, onChangePassword, onBack}){
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── BATCH IMPORT ACCOUNTS (CSV) ──────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
-const CSV_TEMPLATE_HEADERS = ["Full Name","Department","Position","Email","Password","Role"];
+const CSV_TEMPLATE_HEADERS = ["Full Name","Department","Position","Email","Password","Role","Employment Status"];
 const CSV_TEMPLATE_SAMPLE_ROWS = [
-  ["Juan Dela Cruz","Operations","Field Officer","juan.delacruz@cdrrmd.com","TempPass123","employee"],
-  ["Maria Clara Santos","Logistics","Supply Officer","maria.santos@cdrrmd.com","TempPass123","employee"],
-  ["Jose Rizal","IT","System Administrator","jose.rizal@cdrrmd.com","TempPass123","admin"],
+  ["Juan Dela Cruz","Operations","Field Officer","juan.delacruz@cdrrmd.com","TempPass123","employee","Regular"],
+  ["Maria Clara Santos","Logistics","Supply Officer","maria.santos@cdrrmd.com","TempPass123","employee","Casual"],
+  ["Jose Rizal","IT","System Administrator","jose.rizal@cdrrmd.com","TempPass123","admin","Regular"],
 ];
+
 
 function downloadCsvTemplate(){
   const lines = [CSV_TEMPLATE_HEADERS, ...CSV_TEMPLATE_SAMPLE_ROWS]
