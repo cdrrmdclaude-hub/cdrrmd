@@ -2383,7 +2383,9 @@ export default function App(){
       const { results } = await adminBulkCreateAccounts({ data:{ rows: rows.map(r=>({
         email:r.email, password:r.password, name:r.name,
         department:r.department, position:r.position, role:r.role,
+        employmentStatus:r.employmentStatus,
       }))}});
+
       const ok = results.filter(r=>r.ok).length;
       const fail = results.length - ok;
       showToast(`Imported ${ok}${fail?`, ${fail} failed`:""}.`, fail?"#A30E26":"#1A7F56");
