@@ -1656,7 +1656,7 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
                     <table style={{width:"100%",borderCollapse:"collapse",fontSize:12.5}}>
                       <thead>
                         <tr style={{background:"#F0F1F3"}}>
-                          {["Row","Name","Department","Email","Role","Status"].map(h=>(
+                          {["Row","Name","Department","Email","Role","Employment","Status"].map(h=>(
                             <th key={h} style={{padding:"7px 10px",textAlign:"left",fontWeight:700,color:"#555",fontSize:11}}>{h}</th>
                           ))}
                         </tr>
@@ -1670,6 +1670,7 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
                             <td style={{padding:"6px 10px"}}>{r.department||"—"}</td>
                             <td style={{padding:"6px 10px"}}>{r.email||"—"}</td>
                             <td style={{padding:"6px 10px"}}>{r.role}</td>
+                            <td style={{padding:"6px 10px"}}>{r.employmentStatus||"—"}</td>
                             <td style={{padding:"6px 10px"}}>
                               {r.errors.length===0
                                 ?<span style={{color:"#1A7F56",fontWeight:600}}>✓ Ready</span>
@@ -1677,6 +1678,7 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
                             </td>
                           </tr>
                         ))}
+
                       </tbody>
                     </table>
                   </div>
