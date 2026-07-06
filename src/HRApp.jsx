@@ -1453,12 +1453,13 @@ function AccountSettings({user, onUpdateProfile, onChangePassword, onBack}){
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── BATCH IMPORT ACCOUNTS (CSV) ──────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
-const CSV_TEMPLATE_HEADERS = ["Full Name","Department","Position","Email","Password","Role"];
+const CSV_TEMPLATE_HEADERS = ["Full Name","Department","Position","Email","Password","Role","Employment Status"];
 const CSV_TEMPLATE_SAMPLE_ROWS = [
-  ["Juan Dela Cruz","Operations","Field Officer","juan.delacruz@cdrrmd.com","TempPass123","employee"],
-  ["Maria Clara Santos","Logistics","Supply Officer","maria.santos@cdrrmd.com","TempPass123","employee"],
-  ["Jose Rizal","IT","System Administrator","jose.rizal@cdrrmd.com","TempPass123","admin"],
+  ["Juan Dela Cruz","Operations","Field Officer","juan.delacruz@cdrrmd.com","TempPass123","employee","Regular"],
+  ["Maria Clara Santos","Logistics","Supply Officer","maria.santos@cdrrmd.com","TempPass123","employee","Casual"],
+  ["Jose Rizal","IT","System Administrator","jose.rizal@cdrrmd.com","TempPass123","admin","Regular"],
 ];
+
 
 function downloadCsvTemplate(){
   const lines = [CSV_TEMPLATE_HEADERS, ...CSV_TEMPLATE_SAMPLE_ROWS]
@@ -1520,6 +1521,8 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
           const email = get("email","email address");
           const password = get("password","temporary password","temp password");
           const role = normalizeRole(get("role"));
+          const rawEmp = get("employment status","employmentstatus","status") || "Regular";
+          const employmentStatus = EMPLOYMENT_STATUSES.find(s=>s.toLowerCase()===rawEmp.toLowerCase()) || "";
           const errors=[];
 
           if(!name) errors.push("Missing name");
@@ -1532,12 +1535,14 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
           else if(seenInFile.has(email.toLowerCase())) errors.push("Duplicate email in this file");
           if(!password) errors.push("Missing password");
           else if(password.length<6) errors.push("Password must be at least 6 characters");
+          if(!employmentStatus) errors.push(`Invalid employment status "${rawEmp}" (use ${EMPLOYMENT_STATUSES.join(", ")})`);
 
           if(email && !errors.includes("Email already exists in system") && !errors.includes("Duplicate email in this file")){
             seenInFile.add(email.toLowerCase());
           }
 
-          return { rowNum:idx+2, name, department, position, email, password, role, errors };
+          return { rowNum:idx+2, name, department, position, email, password, role, employmentStatus, errors };
+
         });
         setParsedRows(out);
       }catch(err){
@@ -1564,9 +1569,11 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
       const initials = r.name.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase();
       return {
         id: genId(r.role==="admin"?"A":"E"), name:r.name, department:r.department,
-        position:r.position, email:r.email, password:r.password, role:r.role, avatar:initials||"EM",
+        position:r.position, email:r.email, password:r.password, role:r.role,
+        employmentStatus:r.employmentStatus, avatar:initials||"EM",
       };
     });
+
     onImportBatch(created);
     setDone({ created: created.length, skipped: invalidRows.length });
     setImporting(false);
@@ -1649,7 +1656,7 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
                     <table style={{width:"100%",borderCollapse:"collapse",fontSize:12.5}}>
                       <thead>
                         <tr style={{background:"#F0F1F3"}}>
-                          {["Row","Name","Department","Email","Role","Status"].map(h=>(
+                          {["Row","Name","Department","Email","Role","Employment","Status"].map(h=>(
                             <th key={h} style={{padding:"7px 10px",textAlign:"left",fontWeight:700,color:"#555",fontSize:11}}>{h}</th>
                           ))}
                         </tr>
@@ -1663,6 +1670,7 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
                             <td style={{padding:"6px 10px"}}>{r.department||"—"}</td>
                             <td style={{padding:"6px 10px"}}>{r.email||"—"}</td>
                             <td style={{padding:"6px 10px"}}>{r.role}</td>
+                            <td style={{padding:"6px 10px"}}>{r.employmentStatus||"—"}</td>
                             <td style={{padding:"6px 10px"}}>
                               {r.errors.length===0
                                 ?<span style={{color:"#1A7F56",fontWeight:600}}>✓ Ready</span>
@@ -1670,6 +1678,7 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
                             </td>
                           </tr>
                         ))}
+
                       </tbody>
                     </table>
                   </div>
@@ -2374,7 +2383,9 @@ export default function App(){
       const { results } = await adminBulkCreateAccounts({ data:{ rows: rows.map(r=>({
         email:r.email, password:r.password, name:r.name,
         department:r.department, position:r.position, role:r.role,
+        employmentStatus:r.employmentStatus,
       }))}});
+
       const ok = results.filter(r=>r.ok).length;
       const fail = results.length - ok;
       showToast(`Imported ${ok}${fail?`, ${fail} failed`:""}.`, fail?"#A30E26":"#1A7F56");

@@ -57,15 +57,20 @@ export const adminBulkCreateAccounts = createServerFn({ method: "POST" })
     rows: Array<{
       email: string; password: string; name: string;
       department: string; position: string; role: Role;
+      employmentStatus?: string;
     }>;
   }) => d)
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const ALLOWED_STATUSES = ["Regular", "Casual", "Service Contract", "Job Order"];
     const results: Array<{ email: string; ok: boolean; error?: string }> = [];
     for (const row of data.rows) {
       try {
         const initials = row.name.trim().split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+        const employmentStatus = ALLOWED_STATUSES.includes(row.employmentStatus || "")
+          ? row.employmentStatus
+          : "Regular";
         const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
           email: row.email.trim(),
           password: row.password,
@@ -74,6 +79,7 @@ export const adminBulkCreateAccounts = createServerFn({ method: "POST" })
             full_name: row.name.trim(),
             department: row.department,
             position: row.position,
+            employment_status: employmentStatus,
             avatar: initials || "EM",
           },
         });
@@ -89,6 +95,7 @@ export const adminBulkCreateAccounts = createServerFn({ method: "POST" })
     }
     return { results };
   });
+
 
 export const adminResetPassword = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
