@@ -1569,9 +1569,11 @@ function ImportAccountsModal({onClose,onImportBatch,existingEmails}){
       const initials = r.name.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase();
       return {
         id: genId(r.role==="admin"?"A":"E"), name:r.name, department:r.department,
-        position:r.position, email:r.email, password:r.password, role:r.role, avatar:initials||"EM",
+        position:r.position, email:r.email, password:r.password, role:r.role,
+        employmentStatus:r.employmentStatus, avatar:initials||"EM",
       };
     });
+
     onImportBatch(created);
     setDone({ created: created.length, skipped: invalidRows.length });
     setImporting(false);
