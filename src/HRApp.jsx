@@ -2433,7 +2433,7 @@ export default function App(){
 
 
   const navItems = isAdmin
-    ? [{id:"admin",label:"Overview"},{id:"timesheet",label:"Timesheet Export"},{id:"accounts",label:"Manage Accounts"}]
+    ? [{id:"admin",label:"Overview"},{id:"requests",label:"Requests"},{id:"timesheet",label:"Timesheet Export"},{id:"accounts",label:"Manage Accounts"}]
     : [{id:"dashboard",label:"Dashboard"},{id:"new-request",label:"+ Request"}];
 
   return(
