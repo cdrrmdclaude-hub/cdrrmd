@@ -16,20 +16,29 @@ const LOGO_SRC = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAUFBQU
 // ─── PRINT CSS ────────────────────────────────────────────────────────────────
 const PRINT_CSS = `
   @media print {
+    html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
     body * { visibility: hidden !important; }
     #print-zone, #print-zone * { visibility: visible !important; }
     #print-zone {
-      position: fixed !important; inset: 0 !important;
-      background: #fff !important; z-index: 99999 !important;
+      position: absolute !important; left: 0 !important; top: 0 !important;
+      width: 100% !important; background: #fff !important;
       padding: 0 !important; margin: 0 !important; overflow: visible !important;
+    }
+    #print-zone * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
     }
     @page { margin: 15mm 14mm; size: A4 portrait; }
     .no-print { display: none !important; }
+    tr, td, th, .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+    thead { display: table-header-group; }
   }
   @media screen {
     #print-zone { display: none; }
   }
 `;
+
 
 // Seed data removed — all data now loaded from Lovable Cloud (Supabase) with RLS.
 
@@ -858,31 +867,36 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
         <div>
           <h2 style={{margin:0,fontSize:22,fontWeight:800,color:"#1a1a1a",letterSpacing:"-0.02em"}}>Timesheet Export</h2>
-          <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>Configure filters, preview, then export as Excel, PDF, or print</p>
+          <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>Configure filters, preview, then export as Excel (recommended) or print to PDF</p>
         </div>
         <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
           <span style={{fontSize:13,color:"#888",background:"#F0F1F3",padding:"6px 12px",borderRadius:8,fontWeight:600}}>
             {previewCount} record{previewCount!==1?"s":""} · {previewEmps.length} employee{previewEmps.length!==1?"s":""}
           </span>
-          <Btn variant="teal" onClick={()=>setShowPreview(v=>!v)} size="sm">
+          <Btn variant="ghost" onClick={()=>setShowPreview(v=>!v)} size="sm">
             {showPreview?"Hide Preview":"Show Preview"}
           </Btn>
-          <Btn variant="success" onClick={doExportExcel} size="sm">📊 Export Excel</Btn>
-          <Btn variant="dark" onClick={doPrint}>🖨 Export / Print</Btn>
+          <Btn variant="outline" onClick={doPrint} size="sm">🖨 Print / Save as PDF</Btn>
+          <Btn variant="success" onClick={doExportExcel}>📊 Export Excel</Btn>
         </div>
       </div>
 
       {/* Export hint */}
-      <div style={{display:"flex",gap:10,alignItems:"flex-start",background:"#E8EDF6",
-        borderRadius:10,padding:"12px 16px"}}>
-        <span style={{fontSize:16,lineHeight:1}}>💡</span>
-        <p style={{margin:0,fontSize:13,color:"#1E3A6E",lineHeight:1.5}}>
-          <b>Export Excel</b> downloads a workbook with 3 sheets — Balance Summary, Approved Totals
-          by type, and the full Request Log — scoped to your active filters below.
-          <b> To save as PDF:</b> click "Export / Print", then set <b>Destination</b> to
-          <b> "Save as PDF"</b> in the dialog (or "Microsoft Print to PDF" on Windows).
+      <div style={{display:"flex",gap:10,alignItems:"flex-start",background:"#E6F9F3",
+        borderRadius:10,padding:"12px 16px",border:"1px solid #B7EBD9"}}>
+        <span style={{fontSize:16,lineHeight:1}}>✅</span>
+        <p style={{margin:0,fontSize:13,color:"#0F5C40",lineHeight:1.5}}>
+          <b>Recommended: Export Excel</b> — downloads a .xlsx workbook with 3 sheets
+          (Balance Summary, Approved Totals, Request Log) scoped to your active filters.
+          Excel keeps formulas, formatting, and is easy to share or archive.
+          <br/>
+          <span style={{color:"#1E3A6E"}}>
+            <b>Need a PDF?</b> Click <b>Print / Save as PDF</b>, then choose
+            <b> "Save as PDF"</b> as the destination (or "Microsoft Print to PDF" on Windows).
+          </span>
         </p>
       </div>
+
 
       {/* Filter card */}
       <Card>
@@ -996,8 +1010,9 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
             {[
               {icon:"🎛",title:"Set Filters",desc:"Choose department, employee, type, status, and period above"},
               {icon:"👁",title:"Show Preview",desc:"See exactly how the document will look before exporting"},
-              {icon:"📊",title:"Export Excel",desc:"Downloads a .xlsx workbook with summary, totals, and full log sheets"},
-              {icon:"📄",title:"Export / Print",desc:"Choose \"Save as PDF\" in the dialog, or pick a printer to print on paper"},
+              {icon:"📊",title:"Export Excel (recommended)",desc:"Downloads a .xlsx workbook with summary, totals, and full log sheets"},
+              {icon:"📄",title:"Print / Save as PDF",desc:"Opens the print dialog — pick \"Save as PDF\" as destination, or print on paper"},
+
             ].map(({icon,title,desc})=>(
               <div key={title} style={{flex:"1 1 160px"}}>
                 <div style={{fontSize:24,marginBottom:6}}>{icon}</div>
