@@ -1010,8 +1010,9 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
             {[
               {icon:"🎛",title:"Set Filters",desc:"Choose department, employee, type, status, and period above"},
               {icon:"👁",title:"Show Preview",desc:"See exactly how the document will look before exporting"},
-              {icon:"📊",title:"Export Excel",desc:"Downloads a .xlsx workbook with summary, totals, and full log sheets"},
-              {icon:"📄",title:"Export / Print",desc:"Choose \"Save as PDF\" in the dialog, or pick a printer to print on paper"},
+              {icon:"📊",title:"Export Excel (recommended)",desc:"Downloads a .xlsx workbook with summary, totals, and full log sheets"},
+              {icon:"📄",title:"Print / Save as PDF",desc:"Opens the print dialog — pick \"Save as PDF\" as destination, or print on paper"},
+
             ].map(({icon,title,desc})=>(
               <div key={title} style={{flex:"1 1 160px"}}>
                 <div style={{fontSize:24,marginBottom:6}}>{icon}</div>
