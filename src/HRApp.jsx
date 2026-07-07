@@ -2477,7 +2477,9 @@ export default function App(){
         {view==="dashboard"   && <EmployeeDashboard user={user} requests={requests} balances={balancesById} leaveTypes={leaveTypes} onNewRequest={()=>setView("new-request")}/>}
         {view==="new-request" && <NewRequestForm user={user} balances={balancesById} leaveTypes={leaveTypes} onSubmit={handleNewRequest} onCancel={()=>setView("dashboard")}/>}
         {view==="admin"       && <AdminPanel requests={requests} employees={employees} balances={balancesById} leaveTypes={leaveTypes}
-            onApprove={handleApprove} onReject={handleReject} onShowTimesheet={()=>setView("timesheet")}/>}
+            onShowTimesheet={()=>setView("timesheet")} onShowRequests={()=>setView("requests")}/>}
+        {view==="requests"    && <AdminRequests requests={requests} leaveTypes={leaveTypes}
+            onApprove={handleApprove} onReject={handleReject}/>}
         {view==="timesheet"   && <TimesheetExport employees={employees} requests={requests} balances={balancesById} leaveTypes={leaveTypes}/>}
         {view==="accounts"    && <ManageAccounts employees={employees} currentUserId={user.id}
             balances={balancesById} leaveTypes={leaveTypes}
