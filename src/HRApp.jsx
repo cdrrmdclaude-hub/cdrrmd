@@ -1758,7 +1758,7 @@ function AddAccountModal({onClose,onCreate,existingEmails}){
   );
 }
 
-const EMPLOYMENT_STATUSES = ["Regular","Casual","Job Order","Service Contract"];
+const EMPLOYMENT_STATUSES = ["Regular","Casual","Job Order","Service Contractual"];
 
 function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onClose,onSave,onResetPassword,onDelete,existingEmails,employeesById}){
   const [name,setName]=useState(account.name); const [dept,setDept]=useState(account.department);
