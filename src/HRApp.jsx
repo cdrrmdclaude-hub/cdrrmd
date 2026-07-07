@@ -1187,29 +1187,23 @@ function AdminPanel({requests,employees,balances,leaveTypes,onShowTimesheet,onSh
   const [empSearch,setEmpSearch]=useState("");
   const [showLogModal,setShowLogModal]=useState(false);
   const pending=requests.filter(r=>r.status==="pending");
-  const sorted=(filter==="all"?requests:requests.filter(r=>r.status===filter)).slice().sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt));
   const empList=employees.filter(e=>e.role==="employee");
   const q=empSearch.trim().toLowerCase();
   const visibleEmps=empList
     .filter(e=>!deptFilter||e.department===deptFilter)
     .filter(e=>!q||e.name.toLowerCase().includes(q)||e.email.toLowerCase().includes(q)||
       e.position.toLowerCase().includes(q)||e.department.toLowerCase().includes(q));
-  function openReview(req,action){setReviewId(req.id);setReviewAction(action);setReviewNote("");}
-  function confirmReview(){
-    if(reviewAction==="approve") onApprove(reviewId,reviewNote);
-    else onReject(reviewId,reviewNote);
-    setReviewId(null);setReviewNote("");setReviewAction(null);
-  }
   return(
     <div style={{display:"flex",flexDirection:"column",gap:24}}>
       {showLogModal&&<LogPrintModal requests={requests} employees={employees} leaveTypes={leaveTypes} onClose={()=>setShowLogModal(false)}/>}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
         <div>
           <h2 style={{margin:0,fontSize:22,fontWeight:800,color:"#1a1a1a",letterSpacing:"-0.02em"}}>Admin Overview</h2>
-          <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>Review and approve employee requests</p>
+          <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>Employee hours and leave balances at a glance</p>
         </div>
         <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
           <Btn variant="outline" onClick={()=>setShowLogModal(true)} size="sm">🖨 Print Log</Btn>
+          <Btn variant="primary" onClick={onShowRequests} size="sm">📥 Requests{pending.length?` (${pending.length})`:""}</Btn>
           <Btn variant="teal"   onClick={onShowTimesheet} size="sm">📋 Timesheet Export</Btn>
         </div>
       </div>
