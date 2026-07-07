@@ -1182,11 +1182,9 @@ function StatBox({label,value,color="#1E3A6E"}){
     </div>
   );
 }
-function AdminPanel({requests,employees,balances,leaveTypes,onApprove,onReject,onShowTimesheet}){
-  const [filter,setFilter]=useState("pending");
+function AdminPanel({requests,employees,balances,leaveTypes,onShowTimesheet,onShowRequests}){
   const [deptFilter,setDeptFilter]=useState("");
   const [empSearch,setEmpSearch]=useState("");
-  const [reviewId,setReviewId]=useState(null); const [reviewNote,setReviewNote]=useState(""); const [reviewAction,setReviewAction]=useState(null);
   const [showLogModal,setShowLogModal]=useState(false);
   const pending=requests.filter(r=>r.status==="pending");
   const sorted=(filter==="all"?requests:requests.filter(r=>r.status===filter)).slice().sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt));
