@@ -16,20 +16,29 @@ const LOGO_SRC = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAUFBQU
 // ─── PRINT CSS ────────────────────────────────────────────────────────────────
 const PRINT_CSS = `
   @media print {
+    html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
     body * { visibility: hidden !important; }
     #print-zone, #print-zone * { visibility: visible !important; }
     #print-zone {
-      position: fixed !important; inset: 0 !important;
-      background: #fff !important; z-index: 99999 !important;
+      position: absolute !important; left: 0 !important; top: 0 !important;
+      width: 100% !important; background: #fff !important;
       padding: 0 !important; margin: 0 !important; overflow: visible !important;
+    }
+    #print-zone * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
     }
     @page { margin: 15mm 14mm; size: A4 portrait; }
     .no-print { display: none !important; }
+    tr, td, th, .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+    thead { display: table-header-group; }
   }
   @media screen {
     #print-zone { display: none; }
   }
 `;
+
 
 // Seed data removed — all data now loaded from Lovable Cloud (Supabase) with RLS.
 
