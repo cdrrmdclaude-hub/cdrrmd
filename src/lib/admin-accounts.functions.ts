@@ -63,7 +63,7 @@ export const adminBulkCreateAccounts = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const ALLOWED_STATUSES = ["Regular", "Casual", "Service Contract", "Job Order"];
+    const ALLOWED_STATUSES = ["Regular", "Casual", "Service Contractual", "Job Order"];
     const results: Array<{ email: string; ok: boolean; error?: string }> = [];
     for (const row of data.rows) {
       try {

@@ -1182,36 +1182,28 @@ function StatBox({label,value,color="#1E3A6E"}){
     </div>
   );
 }
-function AdminPanel({requests,employees,balances,leaveTypes,onApprove,onReject,onShowTimesheet}){
-  const [filter,setFilter]=useState("pending");
+function AdminPanel({requests,employees,balances,leaveTypes,onShowTimesheet,onShowRequests}){
   const [deptFilter,setDeptFilter]=useState("");
   const [empSearch,setEmpSearch]=useState("");
-  const [reviewId,setReviewId]=useState(null); const [reviewNote,setReviewNote]=useState(""); const [reviewAction,setReviewAction]=useState(null);
   const [showLogModal,setShowLogModal]=useState(false);
   const pending=requests.filter(r=>r.status==="pending");
-  const sorted=(filter==="all"?requests:requests.filter(r=>r.status===filter)).slice().sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt));
   const empList=employees.filter(e=>e.role==="employee");
   const q=empSearch.trim().toLowerCase();
   const visibleEmps=empList
     .filter(e=>!deptFilter||e.department===deptFilter)
     .filter(e=>!q||e.name.toLowerCase().includes(q)||e.email.toLowerCase().includes(q)||
       e.position.toLowerCase().includes(q)||e.department.toLowerCase().includes(q));
-  function openReview(req,action){setReviewId(req.id);setReviewAction(action);setReviewNote("");}
-  function confirmReview(){
-    if(reviewAction==="approve") onApprove(reviewId,reviewNote);
-    else onReject(reviewId,reviewNote);
-    setReviewId(null);setReviewNote("");setReviewAction(null);
-  }
   return(
     <div style={{display:"flex",flexDirection:"column",gap:24}}>
       {showLogModal&&<LogPrintModal requests={requests} employees={employees} leaveTypes={leaveTypes} onClose={()=>setShowLogModal(false)}/>}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
         <div>
           <h2 style={{margin:0,fontSize:22,fontWeight:800,color:"#1a1a1a",letterSpacing:"-0.02em"}}>Admin Overview</h2>
-          <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>Review and approve employee requests</p>
+          <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>Employee hours and leave balances at a glance</p>
         </div>
         <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
           <Btn variant="outline" onClick={()=>setShowLogModal(true)} size="sm">🖨 Print Log</Btn>
+          <Btn variant="primary" onClick={onShowRequests} size="sm">📥 Requests{pending.length?` (${pending.length})`:""}</Btn>
           <Btn variant="teal"   onClick={onShowTimesheet} size="sm">📋 Timesheet Export</Btn>
         </div>
       </div>
@@ -1298,9 +1290,41 @@ function AdminPanel({requests,employees,balances,leaveTypes,onApprove,onReject,o
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── ADMIN REQUESTS ───────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+function AdminRequests({requests,leaveTypes,onApprove,onReject}){
+  const [filter,setFilter]=useState("pending");
+  const [reviewId,setReviewId]=useState(null);
+  const [reviewNote,setReviewNote]=useState("");
+  const [reviewAction,setReviewAction]=useState(null);
+  const pending=requests.filter(r=>r.status==="pending");
+  const sorted=(filter==="all"?requests:requests.filter(r=>r.status===filter)).slice().sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt));
+  function openReview(req,action){setReviewId(req.id);setReviewAction(action);setReviewNote("");}
+  function confirmReview(){
+    if(reviewAction==="approve") onApprove(reviewId,reviewNote);
+    else onReject(reviewId,reviewNote);
+    setReviewId(null);setReviewNote("");setReviewAction(null);
+  }
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:24}}>
+      <div>
+        <h2 style={{margin:0,fontSize:22,fontWeight:800,color:"#1a1a1a",letterSpacing:"-0.02em"}}>Requests</h2>
+        <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>Review and approve employee requests</p>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:14}}>
+        <StatBox label="Pending"  value={pending.length} color="#B07D2A"/>
+        <StatBox label="Total"    value={requests.length}/>
+        <StatBox label="Approved" value={requests.filter(r=>r.status==="approved").length} color="#1DB584"/>
+        <StatBox label="Rejected" value={requests.filter(r=>r.status==="rejected").length} color="#C8102E"/>
+      </div>
       <div>
         <div style={{display:"flex",gap:10,marginBottom:14,flexWrap:"wrap",alignItems:"center"}}>
-          <SectionLabel>Requests</SectionLabel>
+          <SectionLabel>Filter</SectionLabel>
           {["pending","approved","rejected","all"].map(f=>(
             <button key={f} onClick={()=>setFilter(f)} style={{padding:"5px 14px",borderRadius:20,border:"none",
               cursor:"pointer",fontWeight:600,fontSize:13,fontFamily:"inherit",
@@ -1758,7 +1782,7 @@ function AddAccountModal({onClose,onCreate,existingEmails}){
   );
 }
 
-const EMPLOYMENT_STATUSES = ["Regular","Casual","Job Order","Service Contract"];
+const EMPLOYMENT_STATUSES = ["Regular","Casual","Job Order","Service Contractual"];
 
 function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onClose,onSave,onResetPassword,onDelete,existingEmails,employeesById}){
   const [name,setName]=useState(account.name); const [dept,setDept]=useState(account.department);
@@ -2409,7 +2433,7 @@ export default function App(){
 
 
   const navItems = isAdmin
-    ? [{id:"admin",label:"Overview"},{id:"timesheet",label:"Timesheet Export"},{id:"accounts",label:"Manage Accounts"}]
+    ? [{id:"admin",label:"Overview"},{id:"requests",label:"Requests"},{id:"timesheet",label:"Timesheet Export"},{id:"accounts",label:"Manage Accounts"}]
     : [{id:"dashboard",label:"Dashboard"},{id:"new-request",label:"+ Request"}];
 
   return(
@@ -2453,7 +2477,9 @@ export default function App(){
         {view==="dashboard"   && <EmployeeDashboard user={user} requests={requests} balances={balancesById} leaveTypes={leaveTypes} onNewRequest={()=>setView("new-request")}/>}
         {view==="new-request" && <NewRequestForm user={user} balances={balancesById} leaveTypes={leaveTypes} onSubmit={handleNewRequest} onCancel={()=>setView("dashboard")}/>}
         {view==="admin"       && <AdminPanel requests={requests} employees={employees} balances={balancesById} leaveTypes={leaveTypes}
-            onApprove={handleApprove} onReject={handleReject} onShowTimesheet={()=>setView("timesheet")}/>}
+            onShowTimesheet={()=>setView("timesheet")} onShowRequests={()=>setView("requests")}/>}
+        {view==="requests"    && <AdminRequests requests={requests} leaveTypes={leaveTypes}
+            onApprove={handleApprove} onReject={handleReject}/>}
         {view==="timesheet"   && <TimesheetExport employees={employees} requests={requests} balances={balancesById} leaveTypes={leaveTypes}/>}
         {view==="accounts"    && <ManageAccounts employees={employees} currentUserId={user.id}
             balances={balancesById} leaveTypes={leaveTypes}
