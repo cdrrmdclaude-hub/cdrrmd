@@ -1290,9 +1290,41 @@ function AdminPanel({requests,employees,balances,leaveTypes,onShowTimesheet,onSh
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── ADMIN REQUESTS ───────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+function AdminRequests({requests,leaveTypes,onApprove,onReject}){
+  const [filter,setFilter]=useState("pending");
+  const [reviewId,setReviewId]=useState(null);
+  const [reviewNote,setReviewNote]=useState("");
+  const [reviewAction,setReviewAction]=useState(null);
+  const pending=requests.filter(r=>r.status==="pending");
+  const sorted=(filter==="all"?requests:requests.filter(r=>r.status===filter)).slice().sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt));
+  function openReview(req,action){setReviewId(req.id);setReviewAction(action);setReviewNote("");}
+  function confirmReview(){
+    if(reviewAction==="approve") onApprove(reviewId,reviewNote);
+    else onReject(reviewId,reviewNote);
+    setReviewId(null);setReviewNote("");setReviewAction(null);
+  }
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:24}}>
+      <div>
+        <h2 style={{margin:0,fontSize:22,fontWeight:800,color:"#1a1a1a",letterSpacing:"-0.02em"}}>Requests</h2>
+        <p style={{margin:"4px 0 0",color:"#888",fontSize:14}}>Review and approve employee requests</p>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:14}}>
+        <StatBox label="Pending"  value={pending.length} color="#B07D2A"/>
+        <StatBox label="Total"    value={requests.length}/>
+        <StatBox label="Approved" value={requests.filter(r=>r.status==="approved").length} color="#1DB584"/>
+        <StatBox label="Rejected" value={requests.filter(r=>r.status==="rejected").length} color="#C8102E"/>
+      </div>
       <div>
         <div style={{display:"flex",gap:10,marginBottom:14,flexWrap:"wrap",alignItems:"center"}}>
-          <SectionLabel>Requests</SectionLabel>
+          <SectionLabel>Filter</SectionLabel>
           {["pending","approved","rejected","all"].map(f=>(
             <button key={f} onClick={()=>setFilter(f)} style={{padding:"5px 14px",borderRadius:20,border:"none",
               cursor:"pointer",fontWeight:600,fontSize:13,fontFamily:"inherit",
