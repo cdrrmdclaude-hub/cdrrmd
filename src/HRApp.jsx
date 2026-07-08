@@ -2536,7 +2536,8 @@ export default function App(){
             onSaveDetails={handleAdminSaveDetails}
             onResetPassword={handleAdminResetPassword} onDelete={handleAdminDeleteAccount}
             onAddLeaveType={handleAddLeaveType} onUpdateLeaveType={handleUpdateLeaveType}
-            onDeleteLeaveType={handleDeleteLeaveType} onUpdateEmployeeLeave={handleUpdateEmployeeLeave}/>}
+            onDeleteLeaveType={handleDeleteLeaveType} onUpdateEmployeeLeave={handleUpdateEmployeeLeave}
+            onUpdateEmployeeCredits={handleUpdateEmployeeCredits}/>}
         {view==="settings"    && <AccountSettings user={user} onUpdateProfile={handleUpdateProfile} onChangePassword={handleChangePassword} onBack={()=>setView(isAdmin?"admin":"dashboard")}/>}
       </main>
 
