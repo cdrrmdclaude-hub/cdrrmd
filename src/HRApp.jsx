@@ -2055,7 +2055,7 @@ function LeaveTypesManager({leaveTypes,onAdd,onUpdate,onDelete}){
   );
 }
 
-function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,onImportBatch,onSaveDetails,onResetPassword,onDelete,onAddLeaveType,onUpdateLeaveType,onDeleteLeaveType,onUpdateEmployeeLeave}){
+function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,onImportBatch,onSaveDetails,onResetPassword,onDelete,onAddLeaveType,onUpdateLeaveType,onDeleteLeaveType,onUpdateEmployeeLeave,onUpdateEmployeeCredits}){
   const [showAdd,setShowAdd]=useState(false);
   const [showImport,setShowImport]=useState(false);
   const [editing,setEditing]=useState(null); // employee object or null
