@@ -1799,7 +1799,7 @@ function AddAccountModal({onClose,onCreate,existingEmails}){
 
 const EMPLOYMENT_STATUSES = ["Regular","Casual","Job Order","Service Contractual"];
 
-function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onClose,onSave,onResetPassword,onDelete,existingEmails,employeesById}){
+function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onUpdateEmployeeCredits,onClose,onSave,onResetPassword,onDelete,existingEmails,employeesById}){
   const [name,setName]=useState(account.name); const [dept,setDept]=useState(account.department);
   const [pos,setPos]=useState(account.position); const [email,setEmail]=useState(account.email);
   const [empStatus,setEmpStatus]=useState(account.employmentStatus||"Regular");
