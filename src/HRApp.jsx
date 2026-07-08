@@ -2524,13 +2524,30 @@ export default function App(){
   return(
     <div style={{minHeight:"100vh",background:"#F7F8FA",fontFamily:"'Inter','Segoe UI',sans-serif"}}>
       <style>{PRINT_CSS}</style>
+      <style>{`
+        .hr-header-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;height:58px;}
+        .hr-brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+        .hr-nav{display:flex;gap:4px;margin-left:16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+        .hr-nav::-webkit-scrollbar{display:none;}
+        .hr-nav button{white-space:nowrap;}
+        .hr-user-actions{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+        .hr-main{max-width:1100px;margin:0 auto;padding:32px 24px;}
+        @media (max-width:640px){
+          .hr-header-inner{height:auto;padding:8px 12px;flex-wrap:wrap;}
+          .hr-brand{gap:8px;flex:1 1 100%;order:1;}
+          .hr-brand>span{font-size:15px;}
+          .hr-nav{order:3;flex:1 1 100%;margin-left:0;padding:6px 0 2px;}
+          .hr-user-actions{order:2;flex:0 0 auto;}
+          .hr-user-meta{display:none;}
+          .hr-main{padding:18px 12px;}
+        }
+      `}</style>
       <div style={{background:"#fff",borderBottom:"1px solid #E8EBF0",position:"sticky",top:0,zIndex:100}}>
-        <div style={{maxWidth:1100,margin:"0 auto",padding:"0 24px",
-          display:"flex",alignItems:"center",justifyContent:"space-between",height:58}}>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <img src={LOGO_SRC} alt="CDRRMD Logo" style={{width:34,height:34,borderRadius:"50%"}}/>
+        <div className="hr-header-inner">
+          <div className="hr-brand">
+            <img src={LOGO_SRC} alt="CDRRMD Logo" style={{width:34,height:34,borderRadius:"50%",flexShrink:0}}/>
             <span style={{fontWeight:800,fontSize:17,color:"#1a1a1a",letterSpacing:"-0.02em"}}>CDRRMD</span>
-            <nav style={{display:"flex",gap:4,marginLeft:16}}>
+            <nav className="hr-nav" aria-label="Primary">
               {navItems.map(n=>(
                 <button key={n.id} onClick={()=>setView(n.id)} style={{padding:"6px 14px",borderRadius:9,
                   border:"none",cursor:"pointer",fontWeight:600,fontSize:13,fontFamily:"inherit",
@@ -2540,12 +2557,12 @@ export default function App(){
               ))}
             </nav>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <button onClick={()=>setView("settings")} style={{display:"flex",alignItems:"center",gap:10,
+          <div className="hr-user-actions">
+            <button onClick={()=>setView("settings")} aria-label="Account settings" style={{display:"flex",alignItems:"center",gap:10,
               border:"none",background:view==="settings"?"#E8EDF6":"transparent",borderRadius:10,
               padding:"4px 8px",cursor:"pointer",fontFamily:"inherit"}}>
               <Avatar initials={user.avatar} size={32}/>
-              <div style={{lineHeight:1.3,textAlign:"left"}}>
+              <div className="hr-user-meta" style={{lineHeight:1.3,textAlign:"left"}}>
                 <p style={{margin:0,fontSize:13,fontWeight:700,color:"#1a1a1a"}}>{user.name}</p>
                 <p style={{margin:0,fontSize:11,color:"#999"}}>{isAdmin?"Administrator":user.position}</p>
               </div>
@@ -2556,7 +2573,8 @@ export default function App(){
           </div>
         </div>
       </div>
-      <main style={{maxWidth:1100,margin:"0 auto",padding:"32px 24px"}}>
+      <main className="hr-main">
+
         <h1 style={{position:"absolute",width:1,height:1,padding:0,margin:-1,overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>CDRRMD Time &amp; Leave Management</h1>
 
         {view==="dashboard"   && <EmployeeDashboard user={user} requests={requests} balances={balancesById} leaveTypes={leaveTypes} onNewRequest={()=>setView("new-request")}/>}
