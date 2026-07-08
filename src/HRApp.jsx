@@ -2406,7 +2406,7 @@ export default function App(){
     if(!Object.keys(dbPatch).length) return;
     // Upsert in case the balances row doesn't exist yet
     const { error } = await supabase.from("leave_balances")
-      .upsert({ user_id: empId, ...dbPatch }, { onConflict: "user_id" });
+      .update(dbPatch).eq("user_id", empId);
     if(error){ showToast(error.message,"#A30E26"); return; }
     showToast("Credits updated.");
     refreshAll();
