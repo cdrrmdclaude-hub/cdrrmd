@@ -2398,6 +2398,19 @@ export default function App(){
     showToast("Leave allowance updated.");
     refreshAll();
   }
+  async function handleUpdateEmployeeCredits(empId, patch){
+    const dbPatch={};
+    if(patch.creditsOvertime!=null) dbPatch.credits_overtime = Math.max(0, parseFloat(patch.creditsOvertime)||0);
+    if(patch.creditsDutyOff!=null)  dbPatch.credits_duty_off = Math.max(0, parseFloat(patch.creditsDutyOff)||0);
+    if(patch.offsetUsed!=null)      dbPatch.offset_used      = Math.max(0, parseFloat(patch.offsetUsed)||0);
+    if(!Object.keys(dbPatch).length) return;
+    // Upsert in case the balances row doesn't exist yet
+    const { error } = await supabase.from("leave_balances")
+      .upsert({ user_id: empId, ...dbPatch }, { onConflict: "user_id" });
+    if(error){ showToast(error.message,"#A30E26"); return; }
+    showToast("Credits updated.");
+    refreshAll();
+  }
   async function handleUpdateProfile(changes){
     const patch={};
     if(changes.name!=null) patch.full_name = changes.name;
