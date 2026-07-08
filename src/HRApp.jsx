@@ -2084,6 +2084,7 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
         <EditAccountModal account={editing} existingEmails={existingEmails.filter(e=>e!==editing.email)} employeesById={employeesById}
           balance={balances[editing.id]} leaveTypes={leaveTypes}
           onUpdateEmployeeLeave={onUpdateEmployeeLeave}
+          onUpdateEmployeeCredits={onUpdateEmployeeCredits}
           onClose={()=>setEditing(null)}
           onSave={(id,changes)=>{ onSaveDetails(id,changes); setEditing(prev=>prev?{...prev,...changes}:prev); }}
           onResetPassword={(id,pw)=>onResetPassword(id,pw)}
