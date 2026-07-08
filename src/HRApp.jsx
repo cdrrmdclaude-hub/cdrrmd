@@ -2280,6 +2280,26 @@ export default function App(){
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[authUser, role]);
 
+  // Realtime: refresh when any relevant table changes
+  useEffect(()=>{
+    if(!authUser) return;
+    let scheduled=false;
+    const trigger=()=>{
+      if(scheduled) return;
+      scheduled=true;
+      setTimeout(()=>{ scheduled=false; refreshAll(); }, 250);
+    };
+    const channel = supabase.channel("hr-live")
+      .on("postgres_changes",{event:"*",schema:"public",table:"requests"},trigger)
+      .on("postgres_changes",{event:"*",schema:"public",table:"leave_balances"},trigger)
+      .on("postgres_changes",{event:"*",schema:"public",table:"profiles"},trigger)
+      .on("postgres_changes",{event:"*",schema:"public",table:"leave_types"},trigger)
+      .on("postgres_changes",{event:"*",schema:"public",table:"user_roles"},trigger)
+      .subscribe();
+    return ()=>{ supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[authUser]);
+
   if(loading && !profile){
     return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter','Segoe UI',sans-serif",color:"#666"}}>Loading…</div>;
   }
