@@ -1912,6 +1912,42 @@ function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onUp
 
           <div style={{borderTop:"1px solid #E2E5EA"}}/>
 
+          {/* OT / Duty / Offset Credits (employees only) */}
+          {account.role==="employee" && onUpdateEmployeeCredits && (
+            <>
+              <div>
+                <SectionLabel>OT &amp; Duty Credits (hours)</SectionLabel>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10}}>
+                  {[
+                    {key:"creditsOvertime", label:"Overtime Credits", hint:"OT hours banked", color:"#1E3A6E", bg:"#EEF2FB"},
+                    {key:"creditsDutyOff",  label:"Duty-Off Credits", hint:"Day-off duty hours", color:"#7A3E9D", bg:"#F3EAF9"},
+                    {key:"offsetUsed",      label:"Offset Used",      hint:"Offset hours consumed", color:"#1DB584", bg:"#E6F9F3"},
+                  ].map(f=>{
+                    const current = Number(balance?.[f.key]||0);
+                    return(
+                      <div key={f.key} style={{background:f.bg,borderRadius:10,padding:"10px 12px"}}>
+                        <p style={{margin:0,fontSize:12,fontWeight:700,color:f.color}}>{f.label}</p>
+                        <p style={{margin:"2px 0 6px",fontSize:10.5,color:"#888"}}>{f.hint}</p>
+                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                          <input type="number" min="0" step="0.5" defaultValue={current}
+                            onBlur={e=>{
+                              const v=Math.max(0,parseFloat(e.target.value)||0);
+                              if(v!==current) onUpdateEmployeeCredits(account.id, {[f.key]:v});
+                            }}
+                            style={{width:"100%",minWidth:0,border:`1px solid ${f.color}33`,borderRadius:7,
+                              padding:"6px 9px",fontSize:13,fontFamily:"inherit",background:"#fff",color:"#1a1a1a"}}/>
+                          <span style={{fontSize:11,color:f.color,fontWeight:600}}>h</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p style={{margin:"8px 0 0",fontSize:11,color:"#888"}}>Manual adjustments overwrite the totals. Approving OT/Duty/Offset requests updates these automatically.</p>
+              </div>
+              <div style={{borderTop:"1px solid #E2E5EA"}}/>
+            </>
+          )}
+
           {/* Leave Allowances (employees only) */}
           {account.role==="employee" && leaveTypes && leaveTypes.length>0 && (
             <>
