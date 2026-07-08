@@ -1799,7 +1799,7 @@ function AddAccountModal({onClose,onCreate,existingEmails}){
 
 const EMPLOYMENT_STATUSES = ["Regular","Casual","Job Order","Service Contractual"];
 
-function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onClose,onSave,onResetPassword,onDelete,existingEmails,employeesById}){
+function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onUpdateEmployeeCredits,onClose,onSave,onResetPassword,onDelete,existingEmails,employeesById}){
   const [name,setName]=useState(account.name); const [dept,setDept]=useState(account.department);
   const [pos,setPos]=useState(account.position); const [email,setEmail]=useState(account.email);
   const [empStatus,setEmpStatus]=useState(account.employmentStatus||"Regular");
@@ -1911,6 +1911,42 @@ function EditAccountModal({account,balance,leaveTypes,onUpdateEmployeeLeave,onCl
 
 
           <div style={{borderTop:"1px solid #E2E5EA"}}/>
+
+          {/* OT / Duty / Offset Credits (employees only) */}
+          {account.role==="employee" && onUpdateEmployeeCredits && (
+            <>
+              <div>
+                <SectionLabel>OT &amp; Duty Credits (hours)</SectionLabel>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10}}>
+                  {[
+                    {key:"creditsOvertime", label:"Overtime Credits", hint:"OT hours banked", color:"#1E3A6E", bg:"#EEF2FB"},
+                    {key:"creditsDutyOff",  label:"Duty-Off Credits", hint:"Day-off duty hours", color:"#7A3E9D", bg:"#F3EAF9"},
+                    {key:"offsetUsed",      label:"Offset Used",      hint:"Offset hours consumed", color:"#1DB584", bg:"#E6F9F3"},
+                  ].map(f=>{
+                    const current = Number(balance?.[f.key]||0);
+                    return(
+                      <div key={f.key} style={{background:f.bg,borderRadius:10,padding:"10px 12px"}}>
+                        <p style={{margin:0,fontSize:12,fontWeight:700,color:f.color}}>{f.label}</p>
+                        <p style={{margin:"2px 0 6px",fontSize:10.5,color:"#888"}}>{f.hint}</p>
+                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                          <input type="number" min="0" step="0.5" defaultValue={current}
+                            onBlur={e=>{
+                              const v=Math.max(0,parseFloat(e.target.value)||0);
+                              if(v!==current) onUpdateEmployeeCredits(account.id, {[f.key]:v});
+                            }}
+                            style={{width:"100%",minWidth:0,border:`1px solid ${f.color}33`,borderRadius:7,
+                              padding:"6px 9px",fontSize:13,fontFamily:"inherit",background:"#fff",color:"#1a1a1a"}}/>
+                          <span style={{fontSize:11,color:f.color,fontWeight:600}}>h</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p style={{margin:"8px 0 0",fontSize:11,color:"#888"}}>Manual adjustments overwrite the totals. Approving OT/Duty/Offset requests updates these automatically.</p>
+              </div>
+              <div style={{borderTop:"1px solid #E2E5EA"}}/>
+            </>
+          )}
 
           {/* Leave Allowances (employees only) */}
           {account.role==="employee" && leaveTypes && leaveTypes.length>0 && (
@@ -2055,7 +2091,7 @@ function LeaveTypesManager({leaveTypes,onAdd,onUpdate,onDelete}){
   );
 }
 
-function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,onImportBatch,onSaveDetails,onResetPassword,onDelete,onAddLeaveType,onUpdateLeaveType,onDeleteLeaveType,onUpdateEmployeeLeave}){
+function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,onImportBatch,onSaveDetails,onResetPassword,onDelete,onAddLeaveType,onUpdateLeaveType,onDeleteLeaveType,onUpdateEmployeeLeave,onUpdateEmployeeCredits}){
   const [showAdd,setShowAdd]=useState(false);
   const [showImport,setShowImport]=useState(false);
   const [editing,setEditing]=useState(null); // employee object or null
@@ -2084,6 +2120,7 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
         <EditAccountModal account={editing} existingEmails={existingEmails.filter(e=>e!==editing.email)} employeesById={employeesById}
           balance={balances[editing.id]} leaveTypes={leaveTypes}
           onUpdateEmployeeLeave={onUpdateEmployeeLeave}
+          onUpdateEmployeeCredits={onUpdateEmployeeCredits}
           onClose={()=>setEditing(null)}
           onSave={(id,changes)=>{ onSaveDetails(id,changes); setEditing(prev=>prev?{...prev,...changes}:prev); }}
           onResetPassword={(id,pw)=>onResetPassword(id,pw)}
@@ -2280,6 +2317,26 @@ export default function App(){
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[authUser, role]);
 
+  // Realtime: refresh when any relevant table changes
+  useEffect(()=>{
+    if(!authUser) return;
+    let scheduled=false;
+    const trigger=()=>{
+      if(scheduled) return;
+      scheduled=true;
+      setTimeout(()=>{ scheduled=false; refreshAll(); }, 250);
+    };
+    const channel = supabase.channel("hr-live")
+      .on("postgres_changes",{event:"*",schema:"public",table:"requests"},trigger)
+      .on("postgres_changes",{event:"*",schema:"public",table:"leave_balances"},trigger)
+      .on("postgres_changes",{event:"*",schema:"public",table:"profiles"},trigger)
+      .on("postgres_changes",{event:"*",schema:"public",table:"leave_types"},trigger)
+      .on("postgres_changes",{event:"*",schema:"public",table:"user_roles"},trigger)
+      .subscribe();
+    return ()=>{ supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[authUser]);
+
   if(loading && !profile){
     return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter','Segoe UI',sans-serif",color:"#666"}}>Loading…</div>;
   }
@@ -2378,6 +2435,19 @@ export default function App(){
     showToast("Leave allowance updated.");
     refreshAll();
   }
+  async function handleUpdateEmployeeCredits(empId, patch){
+    const dbPatch={};
+    if(patch.creditsOvertime!=null) dbPatch.credits_overtime = Math.max(0, parseFloat(patch.creditsOvertime)||0);
+    if(patch.creditsDutyOff!=null)  dbPatch.credits_duty_off = Math.max(0, parseFloat(patch.creditsDutyOff)||0);
+    if(patch.offsetUsed!=null)      dbPatch.offset_used      = Math.max(0, parseFloat(patch.offsetUsed)||0);
+    if(!Object.keys(dbPatch).length) return;
+    // Upsert in case the balances row doesn't exist yet
+    const { error } = await supabase.from("leave_balances")
+      .update(dbPatch).eq("user_id", empId);
+    if(error){ showToast(error.message,"#A30E26"); return; }
+    showToast("Credits updated.");
+    refreshAll();
+  }
   async function handleUpdateProfile(changes){
     const patch={};
     if(changes.name!=null) patch.full_name = changes.name;
@@ -2454,13 +2524,30 @@ export default function App(){
   return(
     <div style={{minHeight:"100vh",background:"#F7F8FA",fontFamily:"'Inter','Segoe UI',sans-serif"}}>
       <style>{PRINT_CSS}</style>
+      <style>{`
+        .hr-header-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;height:58px;}
+        .hr-brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+        .hr-nav{display:flex;gap:4px;margin-left:16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+        .hr-nav::-webkit-scrollbar{display:none;}
+        .hr-nav button{white-space:nowrap;}
+        .hr-user-actions{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+        .hr-main{max-width:1100px;margin:0 auto;padding:32px 24px;}
+        @media (max-width:640px){
+          .hr-header-inner{height:auto;padding:8px 12px;flex-wrap:wrap;}
+          .hr-brand{gap:8px;flex:1 1 100%;order:1;}
+          .hr-brand>span{font-size:15px;}
+          .hr-nav{order:3;flex:1 1 100%;margin-left:0;padding:6px 0 2px;}
+          .hr-user-actions{order:2;flex:0 0 auto;}
+          .hr-user-meta{display:none;}
+          .hr-main{padding:18px 12px;}
+        }
+      `}</style>
       <div style={{background:"#fff",borderBottom:"1px solid #E8EBF0",position:"sticky",top:0,zIndex:100}}>
-        <div style={{maxWidth:1100,margin:"0 auto",padding:"0 24px",
-          display:"flex",alignItems:"center",justifyContent:"space-between",height:58}}>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <img src={LOGO_SRC} alt="CDRRMD Logo" style={{width:34,height:34,borderRadius:"50%"}}/>
+        <div className="hr-header-inner">
+          <div className="hr-brand">
+            <img src={LOGO_SRC} alt="CDRRMD Logo" style={{width:34,height:34,borderRadius:"50%",flexShrink:0}}/>
             <span style={{fontWeight:800,fontSize:17,color:"#1a1a1a",letterSpacing:"-0.02em"}}>CDRRMD</span>
-            <nav style={{display:"flex",gap:4,marginLeft:16}}>
+            <nav className="hr-nav" aria-label="Primary">
               {navItems.map(n=>(
                 <button key={n.id} onClick={()=>setView(n.id)} style={{padding:"6px 14px",borderRadius:9,
                   border:"none",cursor:"pointer",fontWeight:600,fontSize:13,fontFamily:"inherit",
@@ -2470,12 +2557,12 @@ export default function App(){
               ))}
             </nav>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <button onClick={()=>setView("settings")} style={{display:"flex",alignItems:"center",gap:10,
+          <div className="hr-user-actions">
+            <button onClick={()=>setView("settings")} aria-label="Account settings" style={{display:"flex",alignItems:"center",gap:10,
               border:"none",background:view==="settings"?"#E8EDF6":"transparent",borderRadius:10,
               padding:"4px 8px",cursor:"pointer",fontFamily:"inherit"}}>
               <Avatar initials={user.avatar} size={32}/>
-              <div style={{lineHeight:1.3,textAlign:"left"}}>
+              <div className="hr-user-meta" style={{lineHeight:1.3,textAlign:"left"}}>
                 <p style={{margin:0,fontSize:13,fontWeight:700,color:"#1a1a1a"}}>{user.name}</p>
                 <p style={{margin:0,fontSize:11,color:"#999"}}>{isAdmin?"Administrator":user.position}</p>
               </div>
@@ -2486,7 +2573,8 @@ export default function App(){
           </div>
         </div>
       </div>
-      <main style={{maxWidth:1100,margin:"0 auto",padding:"32px 24px"}}>
+      <main className="hr-main">
+
         <h1 style={{position:"absolute",width:1,height:1,padding:0,margin:-1,overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>CDRRMD Time &amp; Leave Management</h1>
 
         {view==="dashboard"   && <EmployeeDashboard user={user} requests={requests} balances={balancesById} leaveTypes={leaveTypes} onNewRequest={()=>setView("new-request")}/>}
@@ -2502,7 +2590,8 @@ export default function App(){
             onSaveDetails={handleAdminSaveDetails}
             onResetPassword={handleAdminResetPassword} onDelete={handleAdminDeleteAccount}
             onAddLeaveType={handleAddLeaveType} onUpdateLeaveType={handleUpdateLeaveType}
-            onDeleteLeaveType={handleDeleteLeaveType} onUpdateEmployeeLeave={handleUpdateEmployeeLeave}/>}
+            onDeleteLeaveType={handleDeleteLeaveType} onUpdateEmployeeLeave={handleUpdateEmployeeLeave}
+            onUpdateEmployeeCredits={handleUpdateEmployeeCredits}/>}
         {view==="settings"    && <AccountSettings user={user} onUpdateProfile={handleUpdateProfile} onChangePassword={handleChangePassword} onBack={()=>setView(isAdmin?"admin":"dashboard")}/>}
       </main>
 
