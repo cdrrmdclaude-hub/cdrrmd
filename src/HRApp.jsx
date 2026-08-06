@@ -2111,10 +2111,15 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
   const [editing,setEditing]=useState(null); // employee object or null
   const [deptFilter,setDeptFilter]=useState("");
   const [roleFilter,setRoleFilter]=useState("");
+  const [searchInput,setSearchInput]=useState("");
+  const [search,setSearch]=useState("");
 
+  const q = search.trim().toLowerCase();
   const filtered = employees
     .filter(e=>!deptFilter||e.department===deptFilter)
     .filter(e=>!roleFilter||e.role===roleFilter)
+    .filter(e=>!q || [e.name,e.email,e.department,e.position,e.employmentStatus]
+      .some(v=>(v||"").toLowerCase().includes(q)))
     .slice().sort((a,b)=>a.name.localeCompare(b.name));
 
   const existingEmails = employees.map(e=>e.email);
