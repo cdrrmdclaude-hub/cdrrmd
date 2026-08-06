@@ -90,6 +90,9 @@ function genId(p){ return `${p}${Date.now()}${Math.floor(Math.random()*100)}`; }
 function today(){ return new Date().toISOString().split("T")[0]; }
 function fmt(h){ return `${h%1===0?h.toFixed(0):h.toFixed(1)}h`; }
 function fmtDays(d){ const n=+d||0; return `${n%1===0?n.toFixed(0):n.toFixed(1)} day${n===1?"":"s"}`; }
+const WORK_HOURS_PER_DAY = 8;
+function hoursToWorkDays(h){ return (+h||0)/WORK_HOURS_PER_DAY; }
+function fmtHoursDays(h){ return `${fmt(+h||0)} · ${fmtDays(hoursToWorkDays(h))}`; }
 function hoursBetween(start, end){
   if(!start||!end) return 0;
   const [sh,sm]=start.split(":").map(Number);
@@ -197,7 +200,8 @@ function BalCard({type,hours,breakdown}){
         <div>
           <p style={{margin:0,fontSize:12,fontWeight:700,color:"#999",textTransform:"uppercase",letterSpacing:"0.07em"}}>{t.label}</p>
           <p style={{margin:"4px 0 0",fontSize:28,fontWeight:800,color:t.color,letterSpacing:"-0.03em"}}>{fmt(hours)}</p>
-          <p style={{margin:"2px 0 0",fontSize:12,color:"#aaa"}}>{type==="offsetUsed"?"used to date":"remaining"}</p>
+          <p style={{margin:"2px 0 0",fontSize:13,fontWeight:700,color:t.color,opacity:0.85}}>= {fmtDays(hoursToWorkDays(hours))}</p>
+          <p style={{margin:"2px 0 0",fontSize:12,color:"#aaa"}}>{type==="offsetUsed"?"used to date":"remaining"} · {WORK_HOURS_PER_DAY}h = 1 working day</p>
           {breakdown&&<p style={{margin:"4px 0 0",fontSize:11.5,color:"#bbb"}}>{breakdown}</p>}
         </div>
         <span style={{fontSize:28,lineHeight:1}}>{t.icon}</span>
@@ -539,7 +543,9 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
                     <div style={{fontSize:16,fontWeight:900,color:BALANCE_TYPES[k].color,lineHeight:1.2,marginTop:2}}>
                       {fmt(k==="credits"?creditsTotal(bal):(bal[k]||0))}
                     </div>
-                    <div style={{fontSize:9,color:"#aaa"}}>{k==="offsetUsed"?"used":"balance"}</div>
+                    <div style={{fontSize:9,color:"#aaa"}}>
+                      {fmtDays(hoursToWorkDays(k==="credits"?creditsTotal(bal):(bal[k]||0)))} · {k==="offsetUsed"?"used":"balance"}
+                    </div>
                   </div>
                 ))}
                 {["Regular","Casual"].includes(emp.employmentStatus||"Regular") && (
@@ -764,7 +770,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       "Duty on Day-Off Credits (h)": balances[emp.id]?.creditsDutyOff||0,
       "Total OT/Duty Credits (h)": creditsTotal(balances[emp.id]||{}),
       "Remaining OT/Duty Credits Left to Use (h)": Math.max(0, creditsTotal(balances[emp.id]||{}) - (balances[emp.id]?.offsetUsed||0)),
-      "Offset Used (h)": balances[emp.id]?.offsetUsed||0,
+      
       "Total Leave (days)": totalLeaveCell(emp.employmentStatus, balances[emp.id]||{}),
     }));
     // Company-wide totals row
@@ -776,7 +782,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       "Duty on Day-Off Credits (h)": sumOf("Duty on Day-Off Credits (h)"),
       "Total OT/Duty Credits (h)": sumOf("Total OT/Duty Credits (h)"),
       "Remaining OT/Duty Credits Left to Use (h)": sumOf("Remaining OT/Duty Credits Left to Use (h)"),
-      "Offset Used (h)": sumOf("Offset Used (h)"),
+      
       "Total Leave (days)": sumOf("Total Leave (days)"),
     });
     const summarySheet = XLSX.utils.json_to_sheet(summaryData);
@@ -2038,6 +2044,7 @@ function LeaveTypesManager({leaveTypes,onAdd,onUpdate,onDelete}){
   const [name,setName]=useState("");
   const [days,setDays]=useState("");
   const [confirmDel,setConfirmDel]=useState(null);
+  const [open,setOpen]=useState(false);
   function add(){
     if(!name.trim()) return;
     onAdd(name, days||0);
@@ -2045,13 +2052,19 @@ function LeaveTypesManager({leaveTypes,onAdd,onUpdate,onDelete}){
   }
   return(
     <Card style={{padding:"16px 18px"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,
+        marginBottom:open?12:0}}>
         <div>
-          <p style={{margin:0,fontWeight:800,fontSize:15,color:"#1a1a1a"}}>🗓 Leave Types</p>
+          <p style={{margin:0,fontWeight:800,fontSize:15,color:"#1a1a1a"}}>🗓 Leave Types <span style={{fontWeight:600,fontSize:12,color:"#999"}}>({leaveTypes.length})</span></p>
           <p style={{margin:"2px 0 0",fontSize:12,color:"#888"}}>Add or remove leave types and set the default allowance for new employees.</p>
         </div>
+        <Btn size="sm" variant="outline" onClick={()=>setOpen(o=>!o)}>
+          {open?"▲ Hide Leave Types":"▼ Show Leave Types"}
+        </Btn>
       </div>
-      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
+      {open && (<>
+      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14,maxHeight:280,overflowY:"auto"}}>
+
         {leaveTypes.length===0 && <p style={{margin:0,fontSize:13,color:"#aaa"}}>No leave types yet. Add one below.</p>}
         {leaveTypes.map(lt=>(
           <div key={lt.id} style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",
@@ -2087,6 +2100,7 @@ function LeaveTypesManager({leaveTypes,onAdd,onUpdate,onDelete}){
         </div>
         <Btn onClick={add}>+ Add Type</Btn>
       </div>
+      </>)}
     </Card>
   );
 }
@@ -2097,10 +2111,15 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
   const [editing,setEditing]=useState(null); // employee object or null
   const [deptFilter,setDeptFilter]=useState("");
   const [roleFilter,setRoleFilter]=useState("");
+  const [searchInput,setSearchInput]=useState("");
+  const [search,setSearch]=useState("");
 
+  const q = search.trim().toLowerCase();
   const filtered = employees
     .filter(e=>!deptFilter||e.department===deptFilter)
     .filter(e=>!roleFilter||e.role===roleFilter)
+    .filter(e=>!q || [e.name,e.email,e.department,e.position,e.employmentStatus]
+      .some(v=>(v||"").toLowerCase().includes(q)))
     .slice().sort((a,b)=>a.name.localeCompare(b.name));
 
   const existingEmails = employees.map(e=>e.email);
@@ -2141,6 +2160,16 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
 
       {/* Filters */}
       <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
+        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+          <input type="search" value={searchInput}
+            onChange={e=>setSearchInput(e.target.value)}
+            onKeyDown={e=>{ if(e.key==="Enter") setSearch(searchInput); }}
+            placeholder="Search name, email, department…" aria-label="Search accounts"
+            style={{minWidth:220,border:"1px solid #D7DBE2",borderRadius:9,padding:"9px 12px",
+              fontSize:13.5,fontFamily:"inherit",background:"#fff",color:"#1a1a1a"}}/>
+          <Btn size="sm" onClick={()=>setSearch(searchInput)}>🔍 Search</Btn>
+          {search && <Btn size="sm" variant="ghost" onClick={()=>{setSearch("");setSearchInput("");}}>Clear</Btn>}
+        </div>
         <Sel value={deptFilter} onChange={e=>setDeptFilter(e.target.value)} style={{minWidth:180}}>
           <option value="">All Departments</option>
           {DEPARTMENTS.map(d=><option key={d} value={d}>{d}</option>)}
