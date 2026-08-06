@@ -2100,6 +2100,7 @@ function LeaveTypesManager({leaveTypes,onAdd,onUpdate,onDelete}){
         </div>
         <Btn onClick={add}>+ Add Type</Btn>
       </div>
+      </>)}
     </Card>
   );
 }
