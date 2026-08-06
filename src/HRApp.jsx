@@ -2160,15 +2160,16 @@ function ManageAccounts({employees,currentUserId,balances,leaveTypes,onCreate,on
 
       {/* Filters */}
       <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
-        <form onSubmit={e=>{e.preventDefault();setSearch(searchInput);}}
-          style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-          <input type="search" value={searchInput} onChange={e=>setSearchInput(e.target.value)}
+        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+          <input type="search" value={searchInput}
+            onChange={e=>setSearchInput(e.target.value)}
+            onKeyDown={e=>{ if(e.key==="Enter") setSearch(searchInput); }}
             placeholder="Search name, email, department…" aria-label="Search accounts"
             style={{minWidth:220,border:"1px solid #D7DBE2",borderRadius:9,padding:"9px 12px",
               fontSize:13.5,fontFamily:"inherit",background:"#fff",color:"#1a1a1a"}}/>
-          <Btn size="sm" type="submit" onClick={()=>setSearch(searchInput)}>🔍 Search</Btn>
+          <Btn size="sm" onClick={()=>setSearch(searchInput)}>🔍 Search</Btn>
           {search && <Btn size="sm" variant="ghost" onClick={()=>{setSearch("");setSearchInput("");}}>Clear</Btn>}
-        </form>
+        </div>
         <Sel value={deptFilter} onChange={e=>setDeptFilter(e.target.value)} style={{minWidth:180}}>
           <option value="">All Departments</option>
           {DEPARTMENTS.map(d=><option key={d} value={d}>{d}</option>)}
