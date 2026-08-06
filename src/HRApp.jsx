@@ -90,6 +90,9 @@ function genId(p){ return `${p}${Date.now()}${Math.floor(Math.random()*100)}`; }
 function today(){ return new Date().toISOString().split("T")[0]; }
 function fmt(h){ return `${h%1===0?h.toFixed(0):h.toFixed(1)}h`; }
 function fmtDays(d){ const n=+d||0; return `${n%1===0?n.toFixed(0):n.toFixed(1)} day${n===1?"":"s"}`; }
+const WORK_HOURS_PER_DAY = 8;
+function hoursToWorkDays(h){ return (+h||0)/WORK_HOURS_PER_DAY; }
+function fmtHoursDays(h){ return `${fmt(+h||0)} · ${fmtDays(hoursToWorkDays(h))}`; }
 function hoursBetween(start, end){
   if(!start||!end) return 0;
   const [sh,sm]=start.split(":").map(Number);
