@@ -2044,6 +2044,7 @@ function LeaveTypesManager({leaveTypes,onAdd,onUpdate,onDelete}){
   const [name,setName]=useState("");
   const [days,setDays]=useState("");
   const [confirmDel,setConfirmDel]=useState(null);
+  const [open,setOpen]=useState(false);
   function add(){
     if(!name.trim()) return;
     onAdd(name, days||0);
@@ -2051,13 +2052,19 @@ function LeaveTypesManager({leaveTypes,onAdd,onUpdate,onDelete}){
   }
   return(
     <Card style={{padding:"16px 18px"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,
+        marginBottom:open?12:0}}>
         <div>
-          <p style={{margin:0,fontWeight:800,fontSize:15,color:"#1a1a1a"}}>🗓 Leave Types</p>
+          <p style={{margin:0,fontWeight:800,fontSize:15,color:"#1a1a1a"}}>🗓 Leave Types <span style={{fontWeight:600,fontSize:12,color:"#999"}}>({leaveTypes.length})</span></p>
           <p style={{margin:"2px 0 0",fontSize:12,color:"#888"}}>Add or remove leave types and set the default allowance for new employees.</p>
         </div>
+        <Btn size="sm" variant="outline" onClick={()=>setOpen(o=>!o)}>
+          {open?"▲ Hide Leave Types":"▼ Show Leave Types"}
+        </Btn>
       </div>
-      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
+      {open && (<>
+      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14,maxHeight:280,overflowY:"auto"}}>
+
         {leaveTypes.length===0 && <p style={{margin:0,fontSize:13,color:"#aaa"}}>No leave types yet. Add one below.</p>}
         {leaveTypes.map(lt=>(
           <div key={lt.id} style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",
