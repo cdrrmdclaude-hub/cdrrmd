@@ -770,7 +770,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       "Duty on Day-Off Credits (h)": balances[emp.id]?.creditsDutyOff||0,
       "Total OT/Duty Credits (h)": creditsTotal(balances[emp.id]||{}),
       "Remaining OT/Duty Credits Left to Use (h)": Math.max(0, creditsTotal(balances[emp.id]||{}) - (balances[emp.id]?.offsetUsed||0)),
-      "Offset Used (h)": balances[emp.id]?.offsetUsed||0,
+      
       "Total Leave (days)": totalLeaveCell(emp.employmentStatus, balances[emp.id]||{}),
     }));
     // Company-wide totals row
