@@ -782,7 +782,7 @@ function TimesheetExport({employees,requests,balances,leaveTypes}){
       "Duty on Day-Off Credits (h)": sumOf("Duty on Day-Off Credits (h)"),
       "Total OT/Duty Credits (h)": sumOf("Total OT/Duty Credits (h)"),
       "Remaining OT/Duty Credits Left to Use (h)": sumOf("Remaining OT/Duty Credits Left to Use (h)"),
-      "Offset Used (h)": sumOf("Offset Used (h)"),
+      
       "Total Leave (days)": sumOf("Total Leave (days)"),
     });
     const summarySheet = XLSX.utils.json_to_sheet(summaryData);
