@@ -543,7 +543,9 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
                     <div style={{fontSize:16,fontWeight:900,color:BALANCE_TYPES[k].color,lineHeight:1.2,marginTop:2}}>
                       {fmt(k==="credits"?creditsTotal(bal):(bal[k]||0))}
                     </div>
-                    <div style={{fontSize:9,color:"#aaa"}}>{k==="offsetUsed"?"used":"balance"}</div>
+                    <div style={{fontSize:9,color:"#aaa"}}>
+                      {fmtDays(hoursToWorkDays(k==="credits"?creditsTotal(bal):(bal[k]||0)))} · {k==="offsetUsed"?"used":"balance"}
+                    </div>
                   </div>
                 ))}
                 {["Regular","Casual"].includes(emp.employmentStatus||"Regular") && (
