@@ -205,8 +205,12 @@ function BalCard({type,hours,breakdown}){
         <div>
           <p style={{margin:0,fontSize:12,fontWeight:700,color:"#999",textTransform:"uppercase",letterSpacing:"0.07em"}}>{t.label}</p>
           <p style={{margin:"4px 0 0",fontSize:28,fontWeight:800,color:t.color,letterSpacing:"-0.03em"}}>{fmt(hours)}</p>
-          <p style={{margin:"2px 0 0",fontSize:13,fontWeight:700,color:t.color,opacity:0.85}}>= {fmtDays(hoursToWorkDays(hours))}</p>
-          <p style={{margin:"2px 0 0",fontSize:12,color:"#aaa"}}>{type==="offsetUsed"?"used to date":"remaining"} · {WORK_HOURS_PER_DAY}h = 1 working day</p>
+          {type==="offsetUsed" && (
+            <p style={{margin:"2px 0 0",fontSize:13,fontWeight:700,color:t.color,opacity:0.85}}>= {fmtDays(hoursToWorkDays(hours))}</p>
+          )}
+          <p style={{margin:"2px 0 0",fontSize:12,color:"#aaa"}}>
+            {type==="offsetUsed" ? `used to date · ${WORK_HOURS_PER_DAY}h = 1 working day` : "remaining (hours)"}
+          </p>
           {breakdown&&<p style={{margin:"4px 0 0",fontSize:11.5,color:"#bbb"}}>{breakdown}</p>}
         </div>
         <span style={{fontSize:28,lineHeight:1}}>{t.icon}</span>
