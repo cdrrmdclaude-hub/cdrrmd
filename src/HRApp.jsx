@@ -1318,6 +1318,7 @@ function AdminPanel({requests,employees,balances,leaveTypes,onShowTimesheet,onSh
                     <div key={k} style={{background:t.bg,borderRadius:8,padding:"7px 8px"}}>
                       <p style={{margin:0,fontSize:10,color:t.color,fontWeight:700,lineHeight:1.2}}>{k==="credits"?"OT/Duty Credits":t.label}</p>
                       <p style={{margin:"2px 0 0",fontSize:15,fontWeight:800,color:t.color}}>{fmt(k==="credits"?creditsTotal(bal):(bal[k]||0))}</p>
+                      {k==="offsetUsed" && <p style={{margin:0,fontSize:9,color:t.color}}>= {fmtDays(hoursToWorkDays(bal[k]||0))}</p>}
                     </div>
                   ))}
                 </div>
