@@ -412,14 +412,31 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
                 color:REQUEST_TYPES.offset.color,fontWeight:600}}>
                 Available: {fmt(maxOffsetH)} ({fmtDays(hoursToWorkDays(maxOffsetH))}) — from OT/Duty on Day-Off Credits
               </div>
-              <Inp label="Number of Days (0.5 increments · 8h per day)"
-                type="number" min="0.5" step="0.5"
-                value={days} onChange={e=>setDays(e.target.value)} placeholder="e.g. 1"/>
-              {parseFloat(days)>0 && (
-                <p style={{margin:0,fontSize:12.5,color:"#666"}}>
-                  Duration: <b>{fmtDays(parseFloat(days)||0)}</b> = <b>{fmt((parseFloat(days)||0)*8)}</b>
-                </p>
-              )}
+              {(() => {
+                const d = daysInRange(date, endDate);
+                if(d<=0) return (
+                  <p style={{margin:0,fontSize:12.5,color:"#888"}}>
+                    Select a start and end date — offset days are auto-computed (1 day = 8&nbsp;hours).
+                  </p>
+                );
+                const h = d*8;
+                const tooMuch = h > maxOffsetH;
+                return (
+                  <div style={{
+                    background: tooMuch ? "#FBE3E6" : "#F4FBF8",
+                    border: `1px solid ${tooMuch ? "#A30E26" : REQUEST_TYPES.offset.color}33`,
+                    borderRadius:9, padding:"10px 14px", fontSize:13, color:"#1a1a1a"
+                  }}>
+                    <div style={{fontWeight:700,color:tooMuch ? "#A30E26" : REQUEST_TYPES.offset.color}}>
+                      Auto-computed from date range
+                    </div>
+                    <div style={{marginTop:4}}>
+                      {fmtDays(d)} = <b>{fmt(h)}</b>
+                      {tooMuch && <span style={{color:"#A30E26",fontWeight:700}}> · exceeds available credits</span>}
+                    </div>
+                  </div>
+                );
+              })()}
             </>
           ) : (
             <>
