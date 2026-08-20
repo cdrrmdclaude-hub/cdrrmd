@@ -391,23 +391,22 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
                 </>
               )}
             </>
-          ) : (
+          ) : type==="offset" ? (
             <>
-              {type==="offset" && (
-                <div style={{background:REQUEST_TYPES.offset.bg,borderRadius:9,padding:"10px 14px",fontSize:13,
-                  color:REQUEST_TYPES.offset.color,fontWeight:600}}>
-                  Available: {fmt(maxOffsetH)} (from OT/Duty on Day-Off Credits)
-                </div>
-              )}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                <Inp label="Start Time" type="time" value={startTime} onChange={e=>setStartTime(e.target.value)}/>
-                <Inp label="End Time"   type="time" value={endTime}   onChange={e=>setEndTime(e.target.value)}/>
+              <div style={{background:REQUEST_TYPES.offset.bg,borderRadius:9,padding:"10px 14px",fontSize:13,
+                color:REQUEST_TYPES.offset.color,fontWeight:600}}>
+                Available: {fmt(maxOffsetH)} ({fmtDays(hoursToWorkDays(maxOffsetH))}) — from OT/Duty on Day-Off Credits
               </div>
-              {startTime && endTime && computedHours>0 && (
-                <p style={{margin:0,fontSize:12.5,color:"#666"}}>Duration: <b>{fmt(computedHours)}</b></p>
+              <Inp label="Number of Days (0.5 increments · 8h per day)"
+                type="number" min="0.5" step="0.5"
+                value={days} onChange={e=>setDays(e.target.value)} placeholder="e.g. 1"/>
+              {parseFloat(days)>0 && (
+                <p style={{margin:0,fontSize:12.5,color:"#666"}}>
+                  Duration: <b>{fmtDays(parseFloat(days)||0)}</b> = <b>{fmt((parseFloat(days)||0)*8)}</b>
+                </p>
               )}
             </>
-          )}
+          ) : (
 
           <Txtarea label="Reason" value={reason} onChange={e=>setReason(e.target.value)} placeholder="Briefly explain…"/>
           {err&&<p style={{margin:0,color:"#A30E26",fontSize:13}}>{err}</p>}
