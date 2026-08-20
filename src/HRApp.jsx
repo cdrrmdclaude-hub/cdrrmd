@@ -407,6 +407,16 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
               )}
             </>
           ) : (
+            <>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                <Inp label="Start Time" type="time" value={startTime} onChange={e=>setStartTime(e.target.value)}/>
+                <Inp label="End Time"   type="time" value={endTime}   onChange={e=>setEndTime(e.target.value)}/>
+              </div>
+              {startTime && endTime && computedHours>0 && (
+                <p style={{margin:0,fontSize:12.5,color:"#666"}}>Duration: <b>{fmt(computedHours)}</b></p>
+              )}
+            </>
+          )}
 
           <Txtarea label="Reason" value={reason} onChange={e=>setReason(e.target.value)} placeholder="Briefly explain…"/>
           {err&&<p style={{margin:0,color:"#A30E26",fontSize:13}}>{err}</p>}
