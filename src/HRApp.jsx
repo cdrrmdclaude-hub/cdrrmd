@@ -329,11 +329,18 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
       onSubmit({type,date,endDate,leaveTypeId,days:d,hours:d*8,reason:reason.trim()});
       return;
     }
+    if(type==="offset"){
+      const d=parseFloat(days);
+      if(!d||d<0.5){setErr("Days must be at least 0.5.");return;}
+      if((d*10)%5!==0){setErr("Days must be in 0.5 increments.");return;}
+      const h=d*8;
+      if(h>maxOffsetH){setErr(`Only ${fmt(maxOffsetH)} of OT/Duty credits available (${fmtDays(hoursToWorkDays(maxOffsetH))}).`);return;}
+      setErr("");
+      onSubmit({type,date,endDate,days:d,hours:h,reason:reason.trim()});
+      return;
+    }
     if(!startTime||!endTime){setErr("Enter both start and end time.");return;}
     if(computedHours<=0){setErr("End time must be after start time.");return;}
-    if(type==="offset" && computedHours>maxOffsetH){
-      setErr(`Only ${fmt(maxOffsetH)} of OT/Duty credits available.`);return;
-    }
     setErr("");
     onSubmit({type,date,endDate,startTime,endTime,hours:computedHours,reason:reason.trim()});
   }
