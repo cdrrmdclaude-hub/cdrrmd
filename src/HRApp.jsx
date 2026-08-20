@@ -101,6 +101,13 @@ function hoursBetween(start, end){
   if(mins<0) mins+=24*60; // cross-midnight
   return Math.round((mins/60)*10)/10;
 }
+// Inclusive calendar days between two yyyy-mm-dd dates (1 day when start==end).
+function daysInRange(start, end){
+  if(!start||!end) return 0;
+  const s=new Date(start+"T00:00:00"); const e=new Date(end+"T00:00:00");
+  if(isNaN(s.getTime())||isNaN(e.getTime())||e<s) return 0;
+  return Math.round((e-s)/86400000)+1;
+}
 function reqDurationText(r, leaveTypes){
   if(r.type==="leave"){
     const lt = leaveTypes?.find(l=>l.id===r.leaveTypeId);
