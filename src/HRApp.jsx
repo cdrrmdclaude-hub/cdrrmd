@@ -106,6 +106,11 @@ function reqDurationText(r, leaveTypes){
     const lt = leaveTypes?.find(l=>l.id===r.leaveTypeId);
     return `${lt?lt.name:"Leave"} · ${fmtDays(r.days||0)}`;
   }
+  if(r.type==="offset"){
+    if(r.days) return `Offset · ${fmtDays(r.days)} (${fmt(r.hours||0)})`;
+    if(r.startTime && r.endTime) return `${r.startTime}–${r.endTime} (${fmt(r.hours||0)})`;
+    return fmt(r.hours||0);
+  }
   if(r.startTime && r.endTime) return `${r.startTime}–${r.endTime} (${fmt(r.hours||0)})`;
   return fmt(r.hours||0);
 }
