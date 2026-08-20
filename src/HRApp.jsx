@@ -106,6 +106,11 @@ function reqDurationText(r, leaveTypes){
     const lt = leaveTypes?.find(l=>l.id===r.leaveTypeId);
     return `${lt?lt.name:"Leave"} · ${fmtDays(r.days||0)}`;
   }
+  if(r.type==="offset"){
+    if(r.days) return `Offset · ${fmtDays(r.days)} (${fmt(r.hours||0)})`;
+    if(r.startTime && r.endTime) return `${r.startTime}–${r.endTime} (${fmt(r.hours||0)})`;
+    return fmt(r.hours||0);
+  }
   if(r.startTime && r.endTime) return `${r.startTime}–${r.endTime} (${fmt(r.hours||0)})`;
   return fmt(r.hours||0);
 }
@@ -200,8 +205,12 @@ function BalCard({type,hours,breakdown}){
         <div>
           <p style={{margin:0,fontSize:12,fontWeight:700,color:"#999",textTransform:"uppercase",letterSpacing:"0.07em"}}>{t.label}</p>
           <p style={{margin:"4px 0 0",fontSize:28,fontWeight:800,color:t.color,letterSpacing:"-0.03em"}}>{fmt(hours)}</p>
-          <p style={{margin:"2px 0 0",fontSize:13,fontWeight:700,color:t.color,opacity:0.85}}>= {fmtDays(hoursToWorkDays(hours))}</p>
-          <p style={{margin:"2px 0 0",fontSize:12,color:"#aaa"}}>{type==="offsetUsed"?"used to date":"remaining"} · {WORK_HOURS_PER_DAY}h = 1 working day</p>
+          {type==="offsetUsed" && (
+            <p style={{margin:"2px 0 0",fontSize:13,fontWeight:700,color:t.color,opacity:0.85}}>= {fmtDays(hoursToWorkDays(hours))}</p>
+          )}
+          <p style={{margin:"2px 0 0",fontSize:12,color:"#aaa"}}>
+            {type==="offsetUsed" ? `used to date · ${WORK_HOURS_PER_DAY}h = 1 working day` : "remaining (hours)"}
+          </p>
           {breakdown&&<p style={{margin:"4px 0 0",fontSize:11.5,color:"#bbb"}}>{breakdown}</p>}
         </div>
         <span style={{fontSize:28,lineHeight:1}}>{t.icon}</span>
@@ -329,11 +338,18 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
       onSubmit({type,date,endDate,leaveTypeId,days:d,hours:d*8,reason:reason.trim()});
       return;
     }
+    if(type==="offset"){
+      const d=parseFloat(days);
+      if(!d||d<0.5){setErr("Days must be at least 0.5.");return;}
+      if((d*10)%5!==0){setErr("Days must be in 0.5 increments.");return;}
+      const h=d*8;
+      if(h>maxOffsetH){setErr(`Only ${fmt(maxOffsetH)} of OT/Duty credits available (${fmtDays(hoursToWorkDays(maxOffsetH))}).`);return;}
+      setErr("");
+      onSubmit({type,date,endDate,days:d,hours:h,reason:reason.trim()});
+      return;
+    }
     if(!startTime||!endTime){setErr("Enter both start and end time.");return;}
     if(computedHours<=0){setErr("End time must be after start time.");return;}
-    if(type==="offset" && computedHours>maxOffsetH){
-      setErr(`Only ${fmt(maxOffsetH)} of OT/Duty credits available.`);return;
-    }
     setErr("");
     onSubmit({type,date,endDate,startTime,endTime,hours:computedHours,reason:reason.trim()});
   }
@@ -384,14 +400,23 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
                 </>
               )}
             </>
+          ) : type==="offset" ? (
+            <>
+              <div style={{background:REQUEST_TYPES.offset.bg,borderRadius:9,padding:"10px 14px",fontSize:13,
+                color:REQUEST_TYPES.offset.color,fontWeight:600}}>
+                Available: {fmt(maxOffsetH)} ({fmtDays(hoursToWorkDays(maxOffsetH))}) — from OT/Duty on Day-Off Credits
+              </div>
+              <Inp label="Number of Days (0.5 increments · 8h per day)"
+                type="number" min="0.5" step="0.5"
+                value={days} onChange={e=>setDays(e.target.value)} placeholder="e.g. 1"/>
+              {parseFloat(days)>0 && (
+                <p style={{margin:0,fontSize:12.5,color:"#666"}}>
+                  Duration: <b>{fmtDays(parseFloat(days)||0)}</b> = <b>{fmt((parseFloat(days)||0)*8)}</b>
+                </p>
+              )}
+            </>
           ) : (
             <>
-              {type==="offset" && (
-                <div style={{background:REQUEST_TYPES.offset.bg,borderRadius:9,padding:"10px 14px",fontSize:13,
-                  color:REQUEST_TYPES.offset.color,fontWeight:600}}>
-                  Available: {fmt(maxOffsetH)} (from OT/Duty on Day-Off Credits)
-                </div>
-              )}
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
                 <Inp label="Start Time" type="time" value={startTime} onChange={e=>setStartTime(e.target.value)}/>
                 <Inp label="End Time"   type="time" value={endTime}   onChange={e=>setEndTime(e.target.value)}/>
@@ -544,7 +569,9 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
                       {fmt(k==="credits"?creditsTotal(bal):(bal[k]||0))}
                     </div>
                     <div style={{fontSize:9,color:"#aaa"}}>
-                      {fmtDays(hoursToWorkDays(k==="credits"?creditsTotal(bal):(bal[k]||0)))} · {k==="offsetUsed"?"used":"balance"}
+                      {k==="offsetUsed"
+                        ? `${fmtDays(hoursToWorkDays(bal[k]||0))} · used`
+                        : `${k==="credits"?"balance":"used"}`}
                     </div>
                   </div>
                 ))}
@@ -1291,6 +1318,7 @@ function AdminPanel({requests,employees,balances,leaveTypes,onShowTimesheet,onSh
                     <div key={k} style={{background:t.bg,borderRadius:8,padding:"7px 8px"}}>
                       <p style={{margin:0,fontSize:10,color:t.color,fontWeight:700,lineHeight:1.2}}>{k==="credits"?"OT/Duty Credits":t.label}</p>
                       <p style={{margin:"2px 0 0",fontSize:15,fontWeight:800,color:t.color}}>{fmt(k==="credits"?creditsTotal(bal):(bal[k]||0))}</p>
+                      {k==="offsetUsed" && <p style={{margin:0,fontSize:9,color:t.color}}>= {fmtDays(hoursToWorkDays(bal[k]||0))}</p>}
                     </div>
                   ))}
                 </div>
