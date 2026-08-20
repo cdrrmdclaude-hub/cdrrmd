@@ -569,7 +569,9 @@ function TimesheetDoc({employees,requests,balances,leaveTypes,filters,stamp}){
                       {fmt(k==="credits"?creditsTotal(bal):(bal[k]||0))}
                     </div>
                     <div style={{fontSize:9,color:"#aaa"}}>
-                      {fmtDays(hoursToWorkDays(k==="credits"?creditsTotal(bal):(bal[k]||0)))} · {k==="offsetUsed"?"used":"balance"}
+                      {k==="offsetUsed"
+                        ? `${fmtDays(hoursToWorkDays(bal[k]||0))} · used`
+                        : `${k==="credits"?"balance":"used"}`}
                     </div>
                   </div>
                 ))}
