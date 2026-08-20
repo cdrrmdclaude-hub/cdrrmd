@@ -346,9 +346,8 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
       return;
     }
     if(type==="offset"){
-      const d=parseFloat(days);
-      if(!d||d<0.5){setErr("Days must be at least 0.5.");return;}
-      if((d*10)%5!==0){setErr("Days must be in 0.5 increments.");return;}
+      const d=daysInRange(date, endDate);
+      if(!d){setErr("Select a valid start and end date.");return;}
       const h=d*8;
       if(h>maxOffsetH){setErr(`Only ${fmt(maxOffsetH)} of OT/Duty credits available (${fmtDays(hoursToWorkDays(maxOffsetH))}).`);return;}
       setErr("");
