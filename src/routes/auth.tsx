@@ -38,6 +38,11 @@ const EMPLOYMENT_STATUSES = ["Regular","Casual","Service Contractual","Job Order
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const goNext = () => {
+    if (next) { window.location.href = next; return; }
+    navigate({ to: "/" });
+  };
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
@@ -51,9 +56,11 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/" });
+      if (data.user) goNext();
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, next]);
+
 
   async function signIn() {
     setErr(""); setInfo(""); setBusy(true);
