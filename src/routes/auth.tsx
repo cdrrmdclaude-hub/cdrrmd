@@ -3,7 +3,17 @@ import { useEffect, useId, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import logoAsset from "@/assets/logo.jpg.asset.json";
 
+function safeNext(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  if (!value.startsWith("/") || value.startsWith("//")) return undefined;
+  return value;
+}
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>): { next?: string } => {
+    const next = safeNext(s.next);
+    return next ? { next } : {};
+  },
   ssr: false,
   head: () => ({
     meta: [
@@ -28,6 +38,11 @@ const EMPLOYMENT_STATUSES = ["Regular","Casual","Service Contractual","Job Order
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const goNext = () => {
+    if (next) { window.location.href = next; return; }
+    navigate({ to: "/" });
+  };
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
@@ -41,9 +56,11 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/" });
+      if (data.user) goNext();
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, next]);
+
 
   async function signIn() {
     setErr(""); setInfo(""); setBusy(true);
