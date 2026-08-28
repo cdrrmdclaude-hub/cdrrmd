@@ -67,7 +67,7 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
     setBusy(false);
     if (error) { setErr(error.message); return; }
-    navigate({ to: "/" });
+    goNext();
   }
 
   async function signUp() {
