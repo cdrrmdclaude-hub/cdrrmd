@@ -82,7 +82,7 @@ function AuthPage() {
       email: email.trim(),
       password: pw,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: `${window.location.origin}${next ?? "/"}`,
         data: { full_name: name.trim(), department: dept, position: position.trim(), employment_status: empStatus, avatar: initials || "EM" },
       },
     });
