@@ -317,14 +317,14 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
   const [type,setType]=useState("overtime");
   const [date,setDate]=useState(today());
   const [endDate,setEndDate]=useState(today());
-  const [startTime,setStartTime]=useState("");
-  const [endTime,setEndTime]=useState("");
+  const [dayLength,setDayLength]=useState("whole");
   const [leaveTypeId,setLeaveTypeId]=useState(leaveTypes[0]?.id || "");
-  const [days,setDays]=useState("1");
   const [reason,setReason]=useState("");
   const [err,setErr]=useState("");
   const bal=balances[user.id]||{};
-  const computedHours = hoursBetween(startTime, endTime);
+  const calDays = daysInRange(date, endDate);
+  const totalDays = calDays * (dayLength==="half" ? 0.5 : 1);
+  const totalHours = totalDays * 8;
   const maxOffsetH = creditsTotal(bal);
   const remainingForLeave = leaveTypeId ? leaveRemaining(bal, leaveTypeId) : 0;
 
@@ -332,32 +332,22 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
     if(!date){setErr("Select a start date.");return;}
     if(!endDate){setErr("Select an end date.");return;}
     if(endDate<date){setErr("End date must be on or after start date.");return;}
+    if(!calDays){setErr("Select a valid start and end date.");return;}
     if(!reason.trim()){setErr("Provide a reason.");return;}
+    const base={type,date,endDate,days:totalDays,hours:totalHours,reason:reason.trim()};
     if(type==="leave"){
       if(!canFileLeave){setErr("Only Regular and Casual employees may file leave requests.");return;}
       if(!leaveTypeId){setErr("Select a leave type.");return;}
-      const d=parseFloat(days);
-      if(!d||d<0.5){setErr("Days must be at least 0.5.");return;}
-      if(d>5){setErr("Days cannot exceed 5 per request.");return;}
-      if((d*10)%5!==0){setErr("Days must be in 0.5 increments.");return;}
-      if(d>remainingForLeave){setErr(`Only ${fmtDays(remainingForLeave)} remaining for this leave type.`);return;}
+      if(totalDays>remainingForLeave){setErr(`Only ${fmtDays(remainingForLeave)} remaining for this leave type.`);return;}
       setErr("");
-      onSubmit({type,date,endDate,leaveTypeId,days:d,hours:d*8,reason:reason.trim()});
+      onSubmit({...base,leaveTypeId});
       return;
     }
-    if(type==="offset"){
-      const d=daysInRange(date, endDate);
-      if(!d){setErr("Select a valid start and end date.");return;}
-      const h=d*8;
-      if(h>maxOffsetH){setErr(`Only ${fmt(maxOffsetH)} of OT/Duty credits available (${fmtDays(hoursToWorkDays(maxOffsetH))}).`);return;}
-      setErr("");
-      onSubmit({type,date,endDate,days:d,hours:h,reason:reason.trim()});
-      return;
+    if(type==="offset" && totalHours>maxOffsetH){
+      setErr(`Only ${fmt(maxOffsetH)} of OT/Duty credits available (${fmtDays(hoursToWorkDays(maxOffsetH))}).`);return;
     }
-    if(!startTime||!endTime){setErr("Enter both start and end time.");return;}
-    if(computedHours<=0){setErr("End time must be after start time.");return;}
     setErr("");
-    onSubmit({type,date,endDate,startTime,endTime,hours:computedHours,reason:reason.trim()});
+    onSubmit(base);
   }
 
   return(
@@ -385,70 +375,46 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
             <Inp label="End Date"   type="date" value={endDate} min={date} onChange={e=>setEndDate(e.target.value)}/>
           </div>
 
-          {type==="leave" ? (
-            <>
-              {leaveTypes.length===0 ? (
-                <div style={{background:"#FBE3E6",color:"#A30E26",borderRadius:9,padding:"10px 14px",fontSize:13,fontWeight:600}}>
-                  No leave types available. Ask your administrator to add one.
+          <Sel label="Duration per Day" value={dayLength} onChange={e=>setDayLength(e.target.value)}>
+            <option value="whole">Whole Day (8 hours)</option>
+            <option value="half">Half Day (4 hours)</option>
+          </Sel>
+
+          {type==="leave" && (
+            leaveTypes.length===0 ? (
+              <div style={{background:"#FBE3E6",color:"#A30E26",borderRadius:9,padding:"10px 14px",fontSize:13,fontWeight:600}}>
+                No leave types available. Ask your administrator to add one.
+              </div>
+            ) : (
+              <>
+                <Sel label="Leave Type" value={leaveTypeId} onChange={e=>setLeaveTypeId(e.target.value)}>
+                  {leaveTypes.map(lt=><option key={lt.id} value={lt.id}>{lt.name}</option>)}
+                </Sel>
+                <div style={{background:REQUEST_TYPES.leave.bg,borderRadius:9,padding:"10px 14px",fontSize:13,
+                  color:REQUEST_TYPES.leave.color,fontWeight:600}}>
+                  Remaining: {fmtDays(remainingForLeave)}
                 </div>
-              ) : (
-                <>
-                  <Sel label="Leave Type" value={leaveTypeId} onChange={e=>setLeaveTypeId(e.target.value)}>
-                    {leaveTypes.map(lt=><option key={lt.id} value={lt.id}>{lt.name}</option>)}
-                  </Sel>
-                  <div style={{background:REQUEST_TYPES.leave.bg,borderRadius:9,padding:"10px 14px",fontSize:13,
-                    color:REQUEST_TYPES.leave.color,fontWeight:600}}>
-                    Remaining: {fmtDays(remainingForLeave)}
-                  </div>
-                  <Inp label="Number of Days (0.5 – 5, half-day increments)"
-                    type="number" min="0.5" max="5" step="0.5"
-                    value={days} onChange={e=>setDays(e.target.value)} placeholder="e.g. 1"/>
-                </>
-              )}
-            </>
-          ) : type==="offset" ? (
-            <>
-              <div style={{background:REQUEST_TYPES.offset.bg,borderRadius:9,padding:"10px 14px",fontSize:13,
-                color:REQUEST_TYPES.offset.color,fontWeight:600}}>
-                Available: {fmt(maxOffsetH)} ({fmtDays(hoursToWorkDays(maxOffsetH))}) — from OT/Duty on Day-Off Credits
-              </div>
-              {(() => {
-                const d = daysInRange(date, endDate);
-                if(d<=0) return (
-                  <p style={{margin:0,fontSize:12.5,color:"#888"}}>
-                    Select a start and end date — offset days are auto-computed (1 day = 8&nbsp;hours).
-                  </p>
-                );
-                const h = d*8;
-                const tooMuch = h > maxOffsetH;
-                return (
-                  <div style={{
-                    background: tooMuch ? "#FBE3E6" : "#F4FBF8",
-                    border: `1px solid ${tooMuch ? "#A30E26" : REQUEST_TYPES.offset.color}33`,
-                    borderRadius:9, padding:"10px 14px", fontSize:13, color:"#1a1a1a"
-                  }}>
-                    <div style={{fontWeight:700,color:tooMuch ? "#A30E26" : REQUEST_TYPES.offset.color}}>
-                      Auto-computed from date range
-                    </div>
-                    <div style={{marginTop:4}}>
-                      {fmtDays(d)} = <b>{fmt(h)}</b>
-                      {tooMuch && <span style={{color:"#A30E26",fontWeight:700}}> · exceeds available credits</span>}
-                    </div>
-                  </div>
-                );
-              })()}
-            </>
-          ) : (
-            <>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                <Inp label="Start Time" type="time" value={startTime} onChange={e=>setStartTime(e.target.value)}/>
-                <Inp label="End Time"   type="time" value={endTime}   onChange={e=>setEndTime(e.target.value)}/>
-              </div>
-              {startTime && endTime && computedHours>0 && (
-                <p style={{margin:0,fontSize:12.5,color:"#666"}}>Duration: <b>{fmt(computedHours)}</b></p>
-              )}
-            </>
+              </>
+            )
           )}
+          {type==="offset" && (
+            <div style={{background:REQUEST_TYPES.offset.bg,borderRadius:9,padding:"10px 14px",fontSize:13,
+              color:REQUEST_TYPES.offset.color,fontWeight:600}}>
+              Available: {fmt(maxOffsetH)} ({fmtDays(hoursToWorkDays(maxOffsetH))}) — from OT/Duty on Day-Off Credits
+            </div>
+          )}
+
+          {calDays>0 ? (
+            <div style={{background:"#F4FBF8",border:"1px solid #00000014",borderRadius:9,padding:"10px 14px",fontSize:13,color:"#1a1a1a"}}>
+              <div style={{fontWeight:700}}>Total: {calDays} day{calDays===1?"":"s"} from start to end date</div>
+              <div style={{marginTop:4}}>
+                {calDays} × {dayLength==="half"?"half day (4h)":"whole day (8h)"} = <b>{fmtDays(totalDays)}</b> = <b>{fmt(totalHours)}</b>
+              </div>
+            </div>
+          ) : (
+            <p style={{margin:0,fontSize:12.5,color:"#888"}}>Select a start and end date.</p>
+          )}
+
 
           <Txtarea label="Reason" value={reason} onChange={e=>setReason(e.target.value)} placeholder="Briefly explain…"/>
           {err&&<p style={{margin:0,color:"#A30E26",fontSize:13}}>{err}</p>}
