@@ -319,13 +319,18 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
   const [date,setDate]=useState(today());
   const [endDate,setEndDate]=useState(today());
   const [dayLength,setDayLength]=useState("whole");
+  const [hrs,setHrs]=useState("");
+  const [mins,setMins]=useState("");
   const [leaveTypeId,setLeaveTypeId]=useState(leaveTypes[0]?.id || "");
   const [reason,setReason]=useState("");
   const [err,setErr]=useState("");
   const bal=balances[user.id]||{};
+  const isOffset = type==="offset";
+  const isTimed = type==="overtime" || type==="duty";
   const calDays = daysInRange(date, endDate);
-  const totalDays = calDays * (dayLength==="half" ? 0.5 : 1);
-  const totalHours = totalDays * 8;
+  const timedHours = Math.round(((parseInt(hrs)||0) + (parseInt(mins)||0)/60)*100)/100;
+  const totalDays = isOffset ? calDays * (dayLength==="half" ? 0.5 : 1) : isTimed ? 0 : calDays;
+  const totalHours = isTimed ? timedHours : totalDays * 8;
   const maxOffsetH = creditsTotal(bal);
   const remainingForLeave = leaveTypeId ? leaveRemaining(bal, leaveTypeId) : 0;
 
@@ -334,6 +339,11 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
     if(!endDate){setErr("Select an end date.");return;}
     if(endDate<date){setErr("End date must be on or after start date.");return;}
     if(!calDays){setErr("Select a valid start and end date.");return;}
+    if(isTimed){
+      const m=parseInt(mins)||0;
+      if(m<0||m>59){setErr("Minutes must be between 0 and 59.");return;}
+      if(timedHours<=0){setErr("Enter the hours and minutes of the request.");return;}
+    }
     if(!reason.trim()){setErr("Provide a reason.");return;}
     const base={type,date,endDate,days:totalDays,hours:totalHours,reason:reason.trim()};
     if(type==="leave"){
@@ -376,10 +386,18 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
             <Inp label="End Date"   type="date" value={endDate} min={date} onChange={e=>setEndDate(e.target.value)}/>
           </div>
 
-          <Sel label="Duration per Day" value={dayLength} onChange={e=>setDayLength(e.target.value)}>
-            <option value="whole">Whole Day (8 hours)</option>
-            <option value="half">Half Day (4 hours)</option>
-          </Sel>
+          {isOffset && (
+            <Sel label="Duration per Day" value={dayLength} onChange={e=>setDayLength(e.target.value)}>
+              <option value="whole">Whole Day (8 hours)</option>
+              <option value="half">Half Day (4 hours)</option>
+            </Sel>
+          )}
+          {isTimed && (
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <Inp label="Hours" type="number" min="0" max="2920" step="1" value={hrs} onChange={e=>setHrs(e.target.value)} placeholder="e.g. 3"/>
+              <Inp label="Minutes" type="number" min="0" max="59" step="1" value={mins} onChange={e=>setMins(e.target.value)} placeholder="e.g. 30"/>
+            </div>
+          )}
 
           {type==="leave" && (
             leaveTypes.length===0 ? (
@@ -398,7 +416,7 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
               </>
             )
           )}
-          {type==="offset" && (
+          {isOffset && (
             <div style={{background:REQUEST_TYPES.offset.bg,borderRadius:9,padding:"10px 14px",fontSize:13,
               color:REQUEST_TYPES.offset.color,fontWeight:600}}>
               Available: {fmt(maxOffsetH)} ({fmtDays(hoursToWorkDays(maxOffsetH))}) — from OT/Duty on Day-Off Credits
@@ -409,7 +427,9 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
             <div style={{background:"#F4FBF8",border:"1px solid #00000014",borderRadius:9,padding:"10px 14px",fontSize:13,color:"#1a1a1a"}}>
               <div style={{fontWeight:700}}>Total: {calDays} day{calDays===1?"":"s"} from start to end date</div>
               <div style={{marginTop:4}}>
-                {calDays} × {dayLength==="half"?"half day (4h)":"whole day (8h)"} = <b>{fmtDays(totalDays)}</b> = <b>{fmt(totalHours)}</b>
+                {isOffset && <>{calDays} × {dayLength==="half"?"half day (4h)":"whole day (8h)"} = <b>{fmtDays(totalDays)}</b> = <b>{fmt(totalHours)}</b></>}
+                {isTimed && <>Requested time: <b>{fmt(totalHours)}</b></>}
+                {type==="leave" && <>Leave: <b>{fmtDays(totalDays)}</b></>}
               </div>
             </div>
           ) : (
