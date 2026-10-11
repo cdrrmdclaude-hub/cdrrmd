@@ -118,6 +118,7 @@ function reqDurationText(r, leaveTypes){
     if(r.startTime && r.endTime) return `${r.startTime}–${r.endTime} (${fmt(r.hours||0)})`;
     return fmt(r.hours||0);
   }
+  if(r.days) return `${fmtDays(r.days)} (${fmt(r.hours||0)})`;
   if(r.startTime && r.endTime) return `${r.startTime}–${r.endTime} (${fmt(r.hours||0)})`;
   return fmt(r.hours||0);
 }
