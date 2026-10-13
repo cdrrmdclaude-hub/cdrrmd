@@ -326,7 +326,7 @@ function NewRequestForm({user,balances,leaveTypes,onSubmit,onCancel}){
   const [err,setErr]=useState("");
   const bal=balances[user.id]||{};
   const isOffset = type==="offset";
-  const isTimed = type==="overtime" || type==="duty";
+  const isTimed = type==="overtime" || type==="dutyDayOff" || type==="duty";
   const calDays = daysInRange(date, endDate);
   const timedHours = Math.round(((parseInt(hrs)||0) + (parseInt(mins)||0)/60)*100)/100;
   const totalDays = isOffset ? calDays * (dayLength==="half" ? 0.5 : 1) : isTimed ? 0 : calDays;
