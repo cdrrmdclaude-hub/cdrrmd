@@ -1,0 +1,3 @@
+- [ ] Add approval status and enforce it through database policies.
+- [ ] Add admin approval actions for newly registered accounts.
+- [ ] Gate pending accounts in the app and verify approval behavior.
