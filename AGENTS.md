@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Account access requires `public.profiles.is_approved`; enforce approval in database policies and the app gate, with approval changes limited to admins so pending users cannot bypass the workflow.

@@ -8,6 +8,13 @@
       "when": 1791759649533,
       "tag": "0000_relax_request_hours_cap",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794177673505,
+      "tag": "0001_require_admin_approval_for_accounts",
+      "breakpoints": true
     }
   ]
 }

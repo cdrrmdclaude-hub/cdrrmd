@@ -104,6 +104,7 @@ export type Database = {
           employment_status: string
           full_name: string
           id: string
+          is_approved: boolean
           position: string
           updated_at: string
         }
@@ -115,6 +116,7 @@ export type Database = {
           employment_status?: string
           full_name?: string
           id: string
+          is_approved?: boolean
           position?: string
           updated_at?: string
         }
@@ -126,6 +128,7 @@ export type Database = {
           employment_status?: string
           full_name?: string
           id?: string
+          is_approved?: boolean
           position?: string
           updated_at?: string
         }
@@ -261,6 +264,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_account_approved: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "employee"
